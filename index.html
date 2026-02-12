@@ -1,303 +1,399 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WebOS - Windows Like</title>
-<style>
-  /* Reset */
-  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; user-select:none; }
-  html, body { width:100%; height:100%; overflow:hidden; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini OS - Web Environment</title>
+    <style>
+        /* --- ESTILOS GENERALES Y VARIABLES --- */
+        :root {
+            --bg-color: #1e1e2e;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-color: #ffffff;
+            --accent: #89b4fa;
+            --taskbar-height: 50px;
+        }
 
-  /* Pantalla de inicio */
-  #welcome-screen {
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
-    width:100%; height:100%; background:#0078d7; color:white;
-  }
-  #welcome-screen input, #welcome-screen button {
-    margin:5px; padding:10px; border:none; border-radius:5px;
-  }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; user-select: none; }
 
-  /* Escritorio */
-  #desktop {
-    display:none; width:100%; height:100%; position:relative;
-    background-size:cover; background-position:center; overflow:hidden;
-  }
+        body {
+            background: linear-gradient(135deg, #1e1e2e 0%, #313244 50%, #45475a 100%);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+            position: relative;
+        }
 
-  /* Barra de tareas */
-  #taskbar {
-    position:absolute; bottom:0; left:0; width:100%; height:40px;
-    background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:space-between; padding:0 10px;
-    color:white; font-size:14px;
-  }
-  #start-menu { cursor:pointer; }
-  #clock { margin-left:auto; }
+        /* --- ESCRITORIO --- */
+        #desktop {
+            height: calc(100vh - var(--taskbar-height));
+            width: 100%;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
 
-  /* Ventanas */
-  .window {
-    position:absolute; background:white; border:1px solid #666; border-radius:5px;
-    width:300px; height:200px; display:none; flex-direction:column;
-    box-shadow:0 4px 10px rgba(0,0,0,0.5);
-    overflow:hidden;
-  }
-  .window-header {
-    background:#0078d7; color:white; padding:5px; cursor:move; display:flex; justify-content:space-between; align-items:center;
-  }
-  .window-header button {
-    background:red; border:none; border-radius:3px; width:20px; height:20px; color:white; cursor:pointer;
-  }
-  .window-content { flex:1; padding:5px; overflow:auto; background:#f0f0f0; }
+        /* Iconos de Escritorio */
+        .desktop-icon {
+            width: 80px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
-  /* Desktop icons */
-  .desktop-icon {
-    width:60px; text-align:center; margin:10px; cursor:pointer; display:inline-block;
-    color:white; font-size:12px;
-  }
-  .desktop-icon img { width:48px; height:48px; }
+        .desktop-icon:hover { background: var(--glass-bg); }
+        .desktop-icon span { font-size: 32px; margin-bottom: 5px; }
+        .desktop-icon p { font-size: 12px; text-shadow: 0 1px 2px black; }
 
-</style>
+        /* --- VENTANAS (WINDOWS) --- */
+        .window {
+            position: absolute;
+            background: rgba(30, 30, 46, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 300px;
+            min-height: 200px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .window.active { display: flex; animation: popIn 0.2s ease-out; }
+
+        @keyframes popIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .title-bar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+        }
+
+        .title-bar:active { cursor: grabbing; }
+
+        .controls button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .close-btn { background: #ff5f56; }
+        .min-btn { background: #ffbd2e; }
+        .max-btn { background: #27c93f; }
+
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            color: #cdd6f4;
+            overflow: auto;
+        }
+
+        /* Estilos específicos de Apps */
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: inherit;
+            resize: none;
+            outline: none;
+        }
+        
+        .code-editor { font-family: 'Courier New', monospace; }
+
+        /* --- BARRA DE TAREAS --- */
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: var(--taskbar-height);
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-top: 1px solid var(--glass-border);
+            z-index: 1000;
+        }
+
+        .start-btn {
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .start-btn:hover { transform: scale(1.1); }
+
+        .task-icons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .task-icon:hover { background: var(--glass-bg); }
+
+        .clock {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* --- MENÚ DE INICIO --- */
+        #start-menu {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            width: 300px;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+            z-index: 1001;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        #start-menu.show { display: block; animation: slideUp 0.2s; }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .start-item {
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .start-item:hover { background: var(--glass-bg); }
+
+    </style>
 </head>
 <body>
 
-<!-- Pantalla de inicio -->
-<div id="welcome-screen">
-  <h1>Bienvenido a WebOS</h1>
-  <input type="text" id="username" placeholder="Ingresa tu nombre">
-  <input type="file" id="wallpaper" accept="image/*">
-  <button id="enter-desktop">Entrar</button>
-</div>
-
-<!-- Escritorio -->
-<div id="desktop">
-  <!-- Barra de tareas -->
-  <div id="taskbar">
-    <div id="start-menu">Inicio</div>
-    <div id="clock"></div>
-  </div>
-
-  <!-- Iconos en escritorio -->
-  <div id="icons-container" style="padding:10px; position:absolute; top:10px; left:10px;">
-    <div class="desktop-icon" data-app="notes">
-      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png">
-      <div>Notas</div>
+    <div id="desktop">
+        <div class="desktop-icon" onclick="openWindow('notepad')">
+            <span>📝</span>
+            <p>Notas</p>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('browser')">
+            <span>🌐</span>
+            <p>Navegador</p>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('terminal')">
+            <span>💻</span>
+            <p>Terminal</p>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('calculator')">
+            <span>🧮</span>
+            <p>Calculadora</p>
+        </div>
     </div>
-    <div class="desktop-icon" data-app="calculator">
-      <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png">
-      <div>Calculadora</div>
+
+    <div id="notepad" class="window" style="top: 100px; left: 100px; width: 400px; height: 300px;">
+        <div class="title-bar" onmousedown="startDrag(event, 'notepad')">
+            <span>Bloc de Notas</span>
+            <div class="controls">
+                <button class="min-btn"></button>
+                <button class="max-btn"></button>
+                <button class="close-btn" onclick="closeWindow('notepad')"></button>
+            </div>
+        </div>
+        <div class="window-content">
+            <textarea placeholder="Escribe aquí tus ideas..."></textarea>
+        </div>
     </div>
-    <div class="desktop-icon" data-app="terminal">
-      <img src="https://cdn-icons-png.flaticon.com/512/1087/1087841.png">
-      <div>Terminal</div>
+
+    <div id="browser" class="window" style="top: 50px; left: 150px; width: 600px; height: 400px;">
+        <div class="title-bar" onmousedown="startDrag(event, 'browser')">
+            <span>Gemini Browser</span>
+            <div class="controls">
+                <button class="min-btn"></button>
+                <button class="max-btn"></button>
+                <button class="close-btn" onclick="closeWindow('browser')"></button>
+            </div>
+        </div>
+        <div class="window-content" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
+            <h2>Google</h2>
+            <input type="text" placeholder="Buscar en la web..." style="width: 80%; padding: 10px; margin: 20px auto; border-radius: 20px; border: none; background: #fff; color: #333;">
+            <p style="font-size: 0.8em; color: #aaa;">(Simulación de interfaz)</p>
+        </div>
     </div>
-    <div class="desktop-icon" data-app="browser">
-      <img src="https://cdn-icons-png.flaticon.com/512/888/888859.png">
-      <div>Navegador</div>
+
+    <div id="terminal" class="window" style="top: 150px; left: 200px; width: 500px; height: 300px; background: rgba(0,0,0,0.9);">
+        <div class="title-bar" onmousedown="startDrag(event, 'terminal')" style="background: #333;">
+            <span>Terminal</span>
+            <div class="controls">
+                <button class="min-btn"></button>
+                <button class="max-btn"></button>
+                <button class="close-btn" onclick="closeWindow('terminal')"></button>
+            </div>
+        </div>
+        <div class="window-content code-editor" style="color: #0f0;">
+            <p>root@gemini-os:~$ <span id="typing"></span><span style="animation: blink 1s infinite">|</span></p>
+        </div>
     </div>
-    <div class="desktop-icon" data-app="paint">
-      <img src="https://cdn-icons-png.flaticon.com/512/3290/3290063.png">
-      <div>Paint</div>
+
+    <div id="calculator" class="window" style="top: 80px; left: 400px; width: 250px; height: 350px;">
+        <div class="title-bar" onmousedown="startDrag(event, 'calculator')">
+            <span>Calculadora</span>
+            <div class="controls">
+                <button class="min-btn"></button>
+                <button class="max-btn"></button>
+                <button class="close-btn" onclick="closeWindow('calculator')"></button>
+            </div>
+        </div>
+        <div class="window-content" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+            <div style="grid-column: span 4; background: rgba(255,255,255,0.1); padding: 10px; text-align: right; margin-bottom: 10px;">0</div>
+            <button style="padding: 10px;">7</button><button style="padding: 10px;">8</button><button style="padding: 10px;">9</button><button style="padding: 10px;">/</button>
+            <button style="padding: 10px;">4</button><button style="padding: 10px;">5</button><button style="padding: 10px;">6</button><button style="padding: 10px;">*</button>
+            <button style="padding: 10px;">1</button><button style="padding: 10px;">2</button><button style="padding: 10px;">3</button><button style="padding: 10px;">-</button>
+            <button style="padding: 10px;">0</button><button style="padding: 10px;">.</button><button style="padding: 10px;">=</button><button style="padding: 10px;">+</button>
+        </div>
     </div>
-  </div>
 
-  <!-- Ventanas -->
-  <div class="window" id="notes">
-    <div class="window-header">
-      <span>Notas</span>
-      <button onclick="closeWindow('notes')">✖</button>
+    <div id="start-menu">
+        <h3 style="margin-bottom: 15px;">Aplicaciones</h3>
+        <div class="start-item" onclick="openWindow('notepad')"><span>📝</span> Bloc de Notas</div>
+        <div class="start-item" onclick="openWindow('browser')"><span>🌐</span> Navegador</div>
+        <div class="start-item" onclick="openWindow('terminal')"><span>💻</span> Terminal</div>
+        <div class="start-item" onclick="openWindow('calculator')"><span>🧮</span> Calculadora</div>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+        <div class="start-item" style="color: #ff5f56;"><span>⭕</span> Apagar</div>
     </div>
-    <div class="window-content">
-      <textarea id="notes-content" style="width:100%; height:100%;"></textarea>
+
+    <div id="taskbar">
+        <div class="start-btn" onclick="toggleStartMenu()">💠</div>
+        <div class="task-icons">
+            <div class="task-icon" onclick="openWindow('browser')">🌐</div>
+            <div class="task-icon" onclick="openWindow('terminal')">💻</div>
+            <div class="task-icon" onclick="openWindow('notepad')">📝</div>
+        </div>
+        <div class="clock" id="clock">12:00 PM</div>
     </div>
-  </div>
 
-  <div class="window" id="calculator">
-    <div class="window-header">
-      <span>Calculadora</span>
-      <button onclick="closeWindow('calculator')">✖</button>
-    </div>
-    <div class="window-content">
-      <input type="text" id="calc-display" readonly style="width:100%; padding:5px; margin-bottom:5px;">
-      <div>
-        <button onclick="pressCalc('1')">1</button>
-        <button onclick="pressCalc('2')">2</button>
-        <button onclick="pressCalc('3')">3</button>
-        <button onclick="pressCalc('+')">+</button>
-      </div>
-      <div>
-        <button onclick="pressCalc('4')">4</button>
-        <button onclick="pressCalc('5')">5</button>
-        <button onclick="pressCalc('6')">6</button>
-        <button onclick="pressCalc('-')">-</button>
-      </div>
-      <div>
-        <button onclick="pressCalc('7')">7</button>
-        <button onclick="pressCalc('8')">8</button>
-        <button onclick="pressCalc('9')">9</button>
-        <button onclick="pressCalc('*')">×</button>
-      </div>
-      <div>
-        <button onclick="pressCalc('0')">0</button>
-        <button onclick="pressCalc('.')">.</button>
-        <button onclick="calculate()">=</button>
-        <button onclick="pressCalc('/')">÷</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        // --- LOGICA DEL RELOJ ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-  <div class="window" id="terminal">
-    <div class="window-header">
-      <span>Terminal</span>
-      <button onclick="closeWindow('terminal')">✖</button>
-    </div>
-    <div class="window-content" style="background:black; color:#0f0; font-family:monospace; height:100%;">
-      <div id="terminal-output" style="height:calc(100% - 30px); overflow:auto;"></div>
-      <input id="terminal-input" type="text" style="width:100%; padding:5px; background:black; color:#0f0; border:none;" placeholder="Comando">
-    </div>
-  </div>
+        // --- GESTIÓN DE VENTANAS ---
+        let zIndexCounter = 10;
 
-  <div class="window" id="browser">
-    <div class="window-header">
-      <span>Navegador</span>
-      <button onclick="closeWindow('browser')">✖</button>
-    </div>
-    <div class="window-content">
-      <iframe src="https://example.com" style="width:100%; height:100%; border:none;"></iframe>
-    </div>
-  </div>
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'flex';
+            win.classList.add('active');
+            bringToFront(win);
+            document.getElementById('start-menu').classList.remove('show');
+            
+            // Efecto especial para la terminal
+            if(id === 'terminal') typeEffect();
+        }
 
-  <div class="window" id="paint">
-    <div class="window-header">
-      <span>Paint</span>
-      <button onclick="closeWindow('paint')">✖</button>
-    </div>
-    <div class="window-content">
-      <canvas id="paint-canvas" width="400" height="300" style="border:1px solid #000;"></canvas>
-      <br>
-      <input type="color" id="paint-color" value="#000000">
-      <input type="range" id="paint-size" min="1" max="10" value="2">
-    </div>
-  </div>
+        function closeWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'none';
+            win.classList.remove('active');
+        }
 
-</div>
+        function toggleStartMenu() {
+            document.getElementById('start-menu').classList.toggle('show');
+        }
 
-<script>
-  // Variables
-  let currentUser = '';
-  const desktop = document.getElementById('desktop');
+        function bringToFront(element) {
+            zIndexCounter++;
+            element.style.zIndex = zIndexCounter;
+        }
 
-  // Pantalla de inicio
-  document.getElementById('enter-desktop').onclick = () => {
-    const name = document.getElementById('username').value.trim();
-    if(!name){ alert('Ingresa tu nombre'); return; }
-    currentUser = name;
-    // Fondo
-    const file = document.getElementById('wallpaper').files[0];
-    if(file){
-      const reader = new FileReader();
-      reader.onload = e => {
-        desktop.style.backgroundImage = `url(${e.target.result})`;
-        localStorage.setItem('wallpaper', e.target.result);
-      }
-      reader.readAsDataURL(file);
-    } else {
-      const saved = localStorage.getItem('wallpaper');
-      if(saved) desktop.style.backgroundImage = `url(${saved})`;
-    }
-    document.getElementById('welcome-screen').style.display='none';
-    desktop.style.display='block';
-    updateClock();
-  };
+        // --- SISTEMA DE ARRASTRE (DRAG & DROP) ---
+        let isDragging = false;
+        let currentWindow = null;
+        let offset = { x: 0, y: 0 };
 
-  // Reloj
-  function updateClock(){
-    const now = new Date();
-    document.getElementById('clock').innerText = now.toLocaleTimeString();
-    setTimeout(updateClock,1000);
-  }
+        function startDrag(e, windowId) {
+            isDragging = true;
+            currentWindow = document.getElementById(windowId);
+            bringToFront(currentWindow);
+            
+            // Calcular offset del mouse respecto a la ventana
+            offset.x = e.clientX - currentWindow.offsetLeft;
+            offset.y = e.clientY - currentWindow.offsetTop;
+        }
 
-  // Dock y iconos
-  document.querySelectorAll('.desktop-icon').forEach(icon => {
-    icon.onclick = () => openWindow(icon.dataset.app);
-  });
+        document.onmousemove = function(e) {
+            if (isDragging && currentWindow) {
+                e.preventDefault();
+                currentWindow.style.left = (e.clientX - offset.x) + 'px';
+                currentWindow.style.top = (e.clientY - offset.y) + 'px';
+            }
+        };
 
-  function openWindow(id){
-    const win = document.getElementById(id);
-    win.style.display='flex';
-    win.style.top='100px';
-    win.style.left='100px';
-    dragElement(win);
-  }
-  function closeWindow(id){ document.getElementById(id).style.display='none'; }
+        document.onmouseup = function() {
+            isDragging = false;
+            currentWindow = null;
+        };
 
-  // Ventanas movibles
-  function dragElement(el) {
-    const header = el.querySelector('.window-header');
-    let offsetX=0, offsetY=0, mouseX=0, mouseY=0;
-    header.onmousedown = dragMouseDown;
-    function dragMouseDown(e){
-      e.preventDefault();
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      document.onmouseup = closeDrag;
-      document.onmousemove = elementDrag;
-    }
-    function elementDrag(e){
-      offsetX = mouseX - e.clientX;
-      offsetY = mouseY - e.clientY;
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      el.style.top = (el.offsetTop - offsetY) + "px";
-      el.style.left = (el.offsetLeft - offsetX) + "px";
-    }
-    function closeDrag(){ document.onmouseup=null; document.onmousemove=null; }
-  }
+        // Click fuera para cerrar menú inicio
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('start-menu');
+            const startBtn = document.querySelector('.start-btn');
+            if (!menu.contains(e.target) && !startBtn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+        
+        // Efecto Terminal
+        function typeEffect() {
+            const text = "sudo apt-get update && upgrade...";
+            const el = document.getElementById('typing');
+            el.innerHTML = "";
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    el.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 100);
+        }
 
-  // Calculadora
-  let calcValue='';
-  function pressCalc(val){ calcValue+=val; document.getElementById('calc-display').value=calcValue; }
-  function calculate(){ try{ calcValue=eval(calcValue).toString(); }catch(e){ calcValue='Error'; } document.getElementById('calc-display').value=calcValue; }
-
-  // Terminal
-  const termInput = document.getElementById('terminal-input');
-  const termOutput = document.getElementById('terminal-output');
-  termInput.addEventListener('keypress', e=>{
-    if(e.key==='Enter'){
-      const cmd = termInput.value;
-      termOutput.innerHTML += `<div>$ ${cmd}</div>`;
-      if(cmd==='help') termOutput.innerHTML += '<div>Comandos: help, date, echo [texto], clear</div>';
-      else if(cmd==='date') termOutput.innerHTML += `<div>${new Date()}</div>`;
-      else if(cmd.startsWith('echo ')) termOutput.innerHTML += `<div>${cmd.slice(5)}</div>`;
-      else if(cmd==='clear') termOutput.innerHTML='';
-      else termOutput.innerHTML += '<div>Comando no reconocido</div>';
-      termInput.value='';
-      termOutput.scrollTop = termOutput.scrollHeight;
-    }
-  });
-
-  // Notas
-  const notesArea = document.getElementById('notes-content');
-  notesArea.addEventListener('input', ()=>{
-    localStorage.setItem(currentUser+'_notes', notesArea.value);
-  });
-  const savedNotes = localStorage.getItem(currentUser+'_notes');
-  if(savedNotes) notesArea.value = savedNotes;
-
-  // Paint
-  const canvas = document.getElementById('paint-canvas');
-  const ctx = canvas.getContext('2d');
-  let painting=false;
-  canvas.addEventListener('mousedown',()=>painting=true);
-  canvas.addEventListener('mouseup',()=>painting=false);
-  canvas.addEventListener('mousemove', draw);
-  function draw(e){
-    if(!painting) return;
-    ctx.fillStyle = document.getElementById('paint-color').value;
-    const size = document.getElementById('paint-size').value;
-    ctx.beginPath();
-    ctx.arc(e.offsetX,e.offsetY,size,0,Math.PI*2);
-    ctx.fill();
-  }
-</script>
-
+    </script>
 </body>
 </html>
