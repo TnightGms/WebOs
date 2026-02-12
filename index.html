@@ -3,73 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WebOS</title>
+<title>WebOS - Windows Like</title>
 <style>
   /* Reset */
-  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; user-select:none; }
+  html, body { width:100%; height:100%; overflow:hidden; }
 
-  /* Login */
-  #login-screen {
-    display:flex; justify-content:center; align-items:center; height:100vh; width:100vw;
-    background:#1e1e1e; color:white; flex-direction:column;
+  /* Pantalla de inicio */
+  #welcome-screen {
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    width:100%; height:100%; background:#0078d7; color:white;
   }
-  #login-screen input { margin:5px; padding:8px; border-radius:5px; border:none; }
-  #login-screen button { margin:5px; padding:8px 12px; border-radius:5px; border:none; cursor:pointer; }
+  #welcome-screen input, #welcome-screen button {
+    margin:5px; padding:10px; border:none; border-radius:5px;
+  }
 
-  /* Desktop */
+  /* Escritorio */
   #desktop {
-    display:none; height:100vh; width:100vw; position:relative;
-    background-size:cover; background-position:center;
+    display:none; width:100%; height:100%; position:relative;
+    background-size:cover; background-position:center; overflow:hidden;
   }
 
-  /* Dock */
-  #dock {
-    position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-    display:flex; background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:20px;
+  /* Barra de tareas */
+  #taskbar {
+    position:absolute; bottom:0; left:0; width:100%; height:40px;
+    background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:space-between; padding:0 10px;
+    color:white; font-size:14px;
   }
-  .dock-item {
-    margin:0 10px; cursor:pointer; transition: transform 0.2s;
-  }
-  .dock-item:hover { transform: scale(1.3); }
+  #start-menu { cursor:pointer; }
+  #clock { margin-left:auto; }
 
-  /* Windows */
+  /* Ventanas */
   .window {
-    position:absolute; width:300px; height:200px; background:white; border-radius:8px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.3); padding:10px; display:none; flex-direction:column;
+    position:absolute; background:white; border:1px solid #666; border-radius:5px;
+    width:300px; height:200px; display:none; flex-direction:column;
+    box-shadow:0 4px 10px rgba(0,0,0,0.5);
+    overflow:hidden;
   }
-  .window-header { display:flex; justify-content:flex-end; }
-  .window-header button { margin-left:5px; cursor:pointer; }
-  .window-content { flex:1; margin-top:5px; overflow:auto; }
+  .window-header {
+    background:#0078d7; color:white; padding:5px; cursor:move; display:flex; justify-content:space-between; align-items:center;
+  }
+  .window-header button {
+    background:red; border:none; border-radius:3px; width:20px; height:20px; color:white; cursor:pointer;
+  }
+  .window-content { flex:1; padding:5px; overflow:auto; background:#f0f0f0; }
 
-  /* Profile picture */
-  #profile-pic { width:60px; height:60px; border-radius:50%; object-fit:cover; margin-bottom:10px; }
+  /* Desktop icons */
+  .desktop-icon {
+    width:60px; text-align:center; margin:10px; cursor:pointer; display:inline-block;
+    color:white; font-size:12px;
+  }
+  .desktop-icon img { width:48px; height:48px; }
+
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
+<!-- Pantalla de inicio -->
+<div id="welcome-screen">
   <h1>Bienvenido a WebOS</h1>
-  <input type="text" id="username" placeholder="Usuario">
-  <input type="password" id="password" placeholder="Contraseña">
-  <input type="file" id="profile" accept="image/*">
+  <input type="text" id="username" placeholder="Ingresa tu nombre">
   <input type="file" id="wallpaper" accept="image/*">
-  <button id="register">Registrarse</button>
-  <button id="login">Iniciar sesión</button>
+  <button id="enter-desktop">Entrar</button>
 </div>
 
-<!-- DESKTOP -->
+<!-- Escritorio -->
 <div id="desktop">
-  <img id="profile-pic" src="" alt="Foto de perfil">
-  <div id="dock">
-    <div class="dock-item" data-app="notes">📝 Notas</div>
-    <div class="dock-item" data-app="calculator">🧮 Calculadora</div>
-    <div class="dock-item" data-app="terminal">💻 Terminal</div>
+  <!-- Barra de tareas -->
+  <div id="taskbar">
+    <div id="start-menu">Inicio</div>
+    <div id="clock"></div>
   </div>
 
-  <!-- Notas -->
+  <!-- Iconos en escritorio -->
+  <div id="icons-container" style="padding:10px; position:absolute; top:10px; left:10px;">
+    <div class="desktop-icon" data-app="notes">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png">
+      <div>Notas</div>
+    </div>
+    <div class="desktop-icon" data-app="calculator">
+      <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png">
+      <div>Calculadora</div>
+    </div>
+    <div class="desktop-icon" data-app="terminal">
+      <img src="https://cdn-icons-png.flaticon.com/512/1087/1087841.png">
+      <div>Terminal</div>
+    </div>
+    <div class="desktop-icon" data-app="browser">
+      <img src="https://cdn-icons-png.flaticon.com/512/888/888859.png">
+      <div>Navegador</div>
+    </div>
+    <div class="desktop-icon" data-app="paint">
+      <img src="https://cdn-icons-png.flaticon.com/512/3290/3290063.png">
+      <div>Paint</div>
+    </div>
+  </div>
+
+  <!-- Ventanas -->
   <div class="window" id="notes">
     <div class="window-header">
+      <span>Notas</span>
       <button onclick="closeWindow('notes')">✖</button>
     </div>
     <div class="window-content">
@@ -77,9 +110,9 @@
     </div>
   </div>
 
-  <!-- Calculadora -->
   <div class="window" id="calculator">
     <div class="window-header">
+      <span>Calculadora</span>
       <button onclick="closeWindow('calculator')">✖</button>
     </div>
     <div class="window-content">
@@ -111,77 +144,80 @@
     </div>
   </div>
 
-  <!-- Terminal -->
   <div class="window" id="terminal">
     <div class="window-header">
+      <span>Terminal</span>
       <button onclick="closeWindow('terminal')">✖</button>
     </div>
-    <div class="window-content">
-      <div id="terminal-output" style="height:150px; overflow:auto; background:#000; color:#0f0; padding:5px; font-family:monospace;"></div>
-      <input type="text" id="terminal-input" style="width:100%; padding:5px;" placeholder="Escribe comando y presiona Enter">
+    <div class="window-content" style="background:black; color:#0f0; font-family:monospace; height:100%;">
+      <div id="terminal-output" style="height:calc(100% - 30px); overflow:auto;"></div>
+      <input id="terminal-input" type="text" style="width:100%; padding:5px; background:black; color:#0f0; border:none;" placeholder="Comando">
     </div>
   </div>
+
+  <div class="window" id="browser">
+    <div class="window-header">
+      <span>Navegador</span>
+      <button onclick="closeWindow('browser')">✖</button>
+    </div>
+    <div class="window-content">
+      <iframe src="https://example.com" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+  </div>
+
+  <div class="window" id="paint">
+    <div class="window-header">
+      <span>Paint</span>
+      <button onclick="closeWindow('paint')">✖</button>
+    </div>
+    <div class="window-content">
+      <canvas id="paint-canvas" width="400" height="300" style="border:1px solid #000;"></canvas>
+      <br>
+      <input type="color" id="paint-color" value="#000000">
+      <input type="range" id="paint-size" min="1" max="10" value="2">
+    </div>
+  </div>
+
 </div>
 
 <script>
-  // Variables globales
-  let currentUser = null;
+  // Variables
+  let currentUser = '';
+  const desktop = document.getElementById('desktop');
 
-  // Registro
-  document.getElementById('register').onclick = () => {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const profileFile = document.getElementById('profile').files[0];
-    const wallpaperFile = document.getElementById('wallpaper').files[0];
-
-    if(!user || !pass){ alert('Usuario y contraseña requeridos'); return; }
-
-    const readerProfile = new FileReader();
-    readerProfile.onload = function(e){
-      const profileData = e.target.result;
-
-      const readerWall = new FileReader();
-      readerWall.onload = function(ev){
-        const wallData = ev.target.result;
-
-        localStorage.setItem('WebOS_'+user, JSON.stringify({
-          password: pass,
-          profile: profileData,
-          wallpaper: wallData,
-          notes: ''
-        }));
-        alert('Cuenta creada!');
+  // Pantalla de inicio
+  document.getElementById('enter-desktop').onclick = () => {
+    const name = document.getElementById('username').value.trim();
+    if(!name){ alert('Ingresa tu nombre'); return; }
+    currentUser = name;
+    // Fondo
+    const file = document.getElementById('wallpaper').files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = e => {
+        desktop.style.backgroundImage = `url(${e.target.result})`;
+        localStorage.setItem('wallpaper', e.target.result);
       }
-      if(wallpaperFile) readerWall.readAsDataURL(wallpaperFile);
-      else readerWall.onload({target:{result:''}});
+      reader.readAsDataURL(file);
+    } else {
+      const saved = localStorage.getItem('wallpaper');
+      if(saved) desktop.style.backgroundImage = `url(${saved})`;
     }
-    if(profileFile) readerProfile.readAsDataURL(profileFile);
-    else readerProfile.onload({target:{result:''}});
+    document.getElementById('welcome-screen').style.display='none';
+    desktop.style.display='block';
+    updateClock();
   };
 
-  // Login
-  document.getElementById('login').onclick = () => {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const data = JSON.parse(localStorage.getItem('WebOS_'+user));
-    if(data && data.password === pass){
-      currentUser = user;
-      document.getElementById('login-screen').style.display='none';
-      document.getElementById('desktop').style.display='block';
-      loadUser(data);
-    } else alert('Usuario o contraseña incorrectos');
-  };
-
-  // Cargar usuario
-  function loadUser(data){
-    if(data.profile) document.getElementById('profile-pic').src = data.profile;
-    if(data.wallpaper) document.getElementById('desktop').style.backgroundImage = 'url('+data.wallpaper+')';
-    document.getElementById('notes-content').value = data.notes || '';
+  // Reloj
+  function updateClock(){
+    const now = new Date();
+    document.getElementById('clock').innerText = now.toLocaleTimeString();
+    setTimeout(updateClock,1000);
   }
 
-  // Dock click
-  document.querySelectorAll('.dock-item').forEach(item => {
-    item.onclick = () => { openWindow(item.dataset.app); }
+  // Dock y iconos
+  document.querySelectorAll('.desktop-icon').forEach(icon => {
+    icon.onclick = () => openWindow(icon.dataset.app);
   });
 
   function openWindow(id){
@@ -189,44 +225,78 @@
     win.style.display='flex';
     win.style.top='100px';
     win.style.left='100px';
+    dragElement(win);
   }
-  function closeWindow(id){
-    document.getElementById(id).style.display='none';
+  function closeWindow(id){ document.getElementById(id).style.display='none'; }
+
+  // Ventanas movibles
+  function dragElement(el) {
+    const header = el.querySelector('.window-header');
+    let offsetX=0, offsetY=0, mouseX=0, mouseY=0;
+    header.onmousedown = dragMouseDown;
+    function dragMouseDown(e){
+      e.preventDefault();
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      document.onmouseup = closeDrag;
+      document.onmousemove = elementDrag;
+    }
+    function elementDrag(e){
+      offsetX = mouseX - e.clientX;
+      offsetY = mouseY - e.clientY;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      el.style.top = (el.offsetTop - offsetY) + "px";
+      el.style.left = (el.offsetLeft - offsetX) + "px";
+    }
+    function closeDrag(){ document.onmouseup=null; document.onmousemove=null; }
   }
 
   // Calculadora
-  let calcValue = '';
-  function pressCalc(val){ calcValue += val; document.getElementById('calc-display').value = calcValue; }
-  function calculate(){
-    try{ calcValue = eval(calcValue).toString(); }
-    catch(e){ calcValue='Error'; }
-    document.getElementById('calc-display').value = calcValue;
-  }
+  let calcValue='';
+  function pressCalc(val){ calcValue+=val; document.getElementById('calc-display').value=calcValue; }
+  function calculate(){ try{ calcValue=eval(calcValue).toString(); }catch(e){ calcValue='Error'; } document.getElementById('calc-display').value=calcValue; }
 
   // Terminal
   const termInput = document.getElementById('terminal-input');
   const termOutput = document.getElementById('terminal-output');
-  termInput.addEventListener('keypress', (e)=>{
+  termInput.addEventListener('keypress', e=>{
     if(e.key==='Enter'){
       const cmd = termInput.value;
-      termOutput.innerHTML += '<div>$ '+cmd+'</div>';
-      if(cmd==='help') termOutput.innerHTML += '<div>Comandos: help, date, echo [texto]</div>';
-      else if(cmd==='date') termOutput.innerHTML += '<div>'+new Date()+'</div>';
-      else if(cmd.startsWith('echo ')) termOutput.innerHTML += '<div>'+cmd.slice(5)+'</div>';
+      termOutput.innerHTML += `<div>$ ${cmd}</div>`;
+      if(cmd==='help') termOutput.innerHTML += '<div>Comandos: help, date, echo [texto], clear</div>';
+      else if(cmd==='date') termOutput.innerHTML += `<div>${new Date()}</div>`;
+      else if(cmd.startsWith('echo ')) termOutput.innerHTML += `<div>${cmd.slice(5)}</div>`;
+      else if(cmd==='clear') termOutput.innerHTML='';
       else termOutput.innerHTML += '<div>Comando no reconocido</div>';
       termInput.value='';
       termOutput.scrollTop = termOutput.scrollHeight;
     }
   });
 
-  // Guardar notas automáticamente
-  document.getElementById('notes-content').addEventListener('input', ()=>{
-    if(currentUser){
-      const data = JSON.parse(localStorage.getItem('WebOS_'+currentUser));
-      data.notes = document.getElementById('notes-content').value;
-      localStorage.setItem('WebOS_'+currentUser, JSON.stringify(data));
-    }
+  // Notas
+  const notesArea = document.getElementById('notes-content');
+  notesArea.addEventListener('input', ()=>{
+    localStorage.setItem(currentUser+'_notes', notesArea.value);
   });
+  const savedNotes = localStorage.getItem(currentUser+'_notes');
+  if(savedNotes) notesArea.value = savedNotes;
+
+  // Paint
+  const canvas = document.getElementById('paint-canvas');
+  const ctx = canvas.getContext('2d');
+  let painting=false;
+  canvas.addEventListener('mousedown',()=>painting=true);
+  canvas.addEventListener('mouseup',()=>painting=false);
+  canvas.addEventListener('mousemove', draw);
+  function draw(e){
+    if(!painting) return;
+    ctx.fillStyle = document.getElementById('paint-color').value;
+    const size = document.getElementById('paint-size').value;
+    ctx.beginPath();
+    ctx.arc(e.offsetX,e.offsetY,size,0,Math.PI*2);
+    ctx.fill();
+  }
 </script>
 
 </body>
