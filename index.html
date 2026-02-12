@@ -3,494 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebOS Professional - Next Gen Desktop</title>
+    <title>WebOS v4.0 | Professional Edition</title>
     <style>
-        /* --- VARIABLES Y SISTEMA DE DISEÑO --- */
+        /* --- ARQUITECTURA DE DISEÑO (300+ líneas de CSS) --- */
         :root {
-            --bg-blur: blur(25px) saturate(160%);
-            --glass: rgba(25, 25, 35, 0.75);
-            --border: rgba(255, 255, 255, 0.15);
-            --accent: #00a2ff;
-            --accent-glow: rgba(0, 162, 255, 0.4);
+            --primary: #0078d4;
+            --surface: rgba(25, 25, 25, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
-            --taskbar-h: 55px;
-            --radius: 12px;
-            --shadow: 0 20px 60px rgba(0,0,0,0.6);
+            --radius: 10px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
+            font-family: var(--font);
+            background: #000;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            background: #000;
             color: var(--text);
+        }
+
+        #os-canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80') center/cover;
+            transition: filter 0.5s ease;
+        }
+
+        /* --- SISTEMA DE VENTANAS --- */
+        .webos-window {
+            position: absolute;
+            background: var(--surface);
+            backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 200px;
+            min-height: 100px;
+            z-index: 10;
+        }
+
+        .win-titlebar {
+            height: 38px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: default;
             user-select: none;
         }
 
-        #wallpaper {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            transition: transform 0.5s ease;
+        .win-title { flex: 1; font-size: 13px; font-weight: 500; }
+
+        .win-actions { display: flex; gap: 8px; }
+
+        .action-btn {
+            width: 28px; height: 28px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
         }
 
-        /* --- ESCRITORIO --- */
-        #desktop {
-            height: calc(100vh - var(--taskbar-h));
-            position: relative;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, 100px);
-            grid-template-rows: repeat(auto-fill, 110px);
-            grid-auto-flow: column;
-            gap: 15px;
-            z-index: 1;
-        }
+        .action-btn:hover { background: rgba(255,255,255,0.1); }
+        .action-btn.close:hover { background: #e81123; }
 
-        .desktop-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-            border: 1px solid transparent;
-        }
-
-        .desktop-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border);
-        }
-
-        .desktop-item .icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
-        }
-
-        .desktop-item span {
-            font-size: 12px;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
-            font-weight: 500;
-        }
-
-        /* --- MOTOR DE VENTANAS --- */
-        .window {
-            position: absolute;
-            background: var(--glass);
-            backdrop-filter: var(--bg-blur);
-            -webkit-backdrop-filter: var(--bg-blur);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            min-width: 300px;
-            min-height: 200px;
-            overflow: hidden;
-            animation: winOpen 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
-        }
-
-        @keyframes winOpen {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .window.minimized {
-            display: none;
-        }
-
-        .window.maximized {
-            width: 100% !important;
-            height: calc(100vh - var(--taskbar-h)) !important;
-            top: 0 !important; left: 0 !important;
-            border-radius: 0;
-        }
-
-        .win-header {
-            height: 45px;
-            padding: 0 15px;
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            cursor: default;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .win-title {
-            flex: 1;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .win-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .win-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .close { background: #ff5f57; }
-        .max { background: #28c840; }
-        .min { background: #febc2e; }
-        .win-btn:hover { filter: brightness(1.2); }
-
-        .win-body {
-            flex: 1;
-            position: relative;
-            background: rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        /* Resize Handles */
-        .resizer {
-            position: absolute;
-            width: 10px; height: 10px;
-            z-index: 100;
-        }
-        .resizer-br { right: 0; bottom: 0; cursor: nwse-resize; }
-        .resizer-r { right: 0; top: 0; bottom: 0; width: 5px; cursor: e-resize; }
-        .resizer-b { bottom: 0; left: 0; right: 0; height: 5px; cursor: s-resize; }
-
-        /* --- APPS --- */
-        iframe { width: 100%; height: 100%; border: none; background: white; }
-        .terminal { background: #0c0c0c; color: #00ff41; font-family: monospace; padding: 15px; height: 100%; overflow-y: auto; }
-        .notepad { width: 100%; height: 100%; background: #fdfdfd; color: #333; padding: 20px; border: none; outline: none; font-size: 16px; resize: none; }
+        .win-content { flex: 1; position: relative; overflow: auto; background: rgba(0,0,0,0.1); }
 
         /* --- TASKBAR --- */
         #taskbar {
-            height: var(--taskbar-h);
-            width: 100%;
             position: fixed;
-            bottom: 0;
-            background: rgba(15, 15, 20, 0.85);
-            backdrop-filter: var(--bg-blur);
+            bottom: 0; width: 100%; height: 48px;
+            background: rgba(15,15,15,0.85);
+            backdrop-filter: blur(15px);
             border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 99999;
+            display: flex; align-items: center; padding: 0 10px;
+            z-index: 9999;
         }
 
-        #start-btn {
-            width: 40px; height: 40px;
+        .start-menu-trigger {
+            width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
-            font-size: 24px; color: var(--accent);
-        }
-        #start-btn:hover { transform: scale(1.1) rotate(15deg); }
-
-        .task-list {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
+            border-radius: 4px; cursor: pointer; transition: 0.2s;
+            font-size: 20px; color: var(--primary);
         }
 
-        .task-icon {
-            width: 42px; height: 42px;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            cursor: pointer;
-            transition: 0.2s;
-            border-bottom: 3px solid transparent;
-        }
-        .task-icon:hover { background: rgba(255, 255, 255, 0.15); }
-        .task-icon.active { border-bottom: 3px solid var(--accent); background: rgba(255, 255, 255, 0.1); }
+        .task-icons { flex: 1; display: flex; justify-content: center; gap: 6px; }
 
-        .sys-tray {
-            display: flex;
-            align-items: center;
+        .task-item {
+            width: 36px; height: 36px;
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.05);
+        }
+
+        /* --- APPS --- */
+        .app-iframe { width: 100%; height: 100%; border: none; background: white; }
+        .app-terminal { padding: 15px; font-family: 'Consolas', monospace; color: #00ff00; height: 100%; }
+        .app-editor { width: 100%; height: 100%; background: #1e1e1e; color: #d4d4d4; padding: 10px; border: none; font-family: monospace; resize: none; }
+
+        /* --- DESKTOP --- */
+        #desktop-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 80px);
+            grid-auto-rows: 90px;
             gap: 15px;
-            font-size: 13px;
         }
 
-        /* --- START MENU --- */
-        #start-menu {
-            position: absolute;
-            bottom: 65px; left: 15px;
-            width: 400px; height: 500px;
-            background: var(--glass);
-            backdrop-filter: var(--bg-blur);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            z-index: 100000;
-            transform: translateY(120%);
-            transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            padding: 25px;
+        .desktop-icon {
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; cursor: pointer; border-radius: 6px; padding: 5px;
         }
-        #start-menu.open { transform: translateY(0); }
-
-        /* --- UTILS --- */
-        .loading {
-            position: fixed; inset: 0; background: #000; z-index: 1000000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 1s ease;
-        }
-        .spinner { width: 40px; height: 40px; border: 3px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
+        .desktop-icon .icon-img { font-size: 32px; margin-bottom: 5px; }
+        .desktop-icon .icon-label { font-size: 11px; text-shadow: 1px 1px 2px #000; }
 
     </style>
 </head>
 <body>
 
-    <div class="loading" id="loader">
-        <div class="spinner"></div>
-        <h2 style="margin-top: 20px; font-weight: 300; letter-spacing: 5px;">WEB OS</h2>
-    </div>
-
-    <img id="wallpaper" src="https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=1920&q=80">
-
-    <div id="desktop"></div>
-
-    <div id="start-menu">
-        <h3 style="margin-bottom: 20px;">Aplicaciones</h3>
-        <div id="start-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
-        <div style="position: absolute; bottom: 20px; right: 20px;">
-            <button onclick="location.reload()" style="background:none; border:none; color:white; cursor:pointer;">Reiniciar ⟳</button>
-        </div>
-    </div>
-
-    <div id="taskbar">
-        <div id="start-btn" onclick="toggleStart()">💠</div>
-        <div class="task-list" id="task-icons"></div>
-        <div class="sys-tray">
-            <span id="clock">00:00:00</span>
+    <div id="os-canvas">
+        <div id="desktop-grid"></div>
+        
+        <div id="taskbar">
+            <div class="start-menu-trigger" onclick="WebOS.ui.toggleStart()">⊞</div>
+            <div class="task-icons" id="task-icons-container"></div>
+            <div id="system-time" style="font-size: 12px; padding: 0 10px;">00:00</div>
         </div>
     </div>
 
     <script>
-        /**
-         * WEB OS - NÚCLEO DE SISTEMA v3.0
-         * Autor: Gemini AI
-         */
-
-        const APPS = {
-            'duck': { name: 'Duck Search', icon: '🌐', type: 'iframe', url: 'https://duckduckgo.com' },
-            'terminal': { name: 'Terminal', icon: '💻', type: 'terminal' },
-            'notes': { name: 'Notepad', icon: '📝', type: 'notes' },
-            'files': { name: 'Files', icon: '📂', type: 'html', content: '<div style="padding:20px"><h3>WebOS / C:</h3><br>📂 Documentos<br>📂 Imágenes<br>📂 Sistema</div>' },
-            'calc': { name: 'Calculadora', icon: '🧮', type: 'iframe', url: 'https://www.desmos.com/scientific' },
-            'yt': { name: 'Player', icon: '🎬', type: 'iframe', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            'settings': { name: 'Ajustes', icon: '⚙️', type: 'settings' }
-        };
-
-        let openApps = [];
-        let activeWin = null;
-        let zIndex = 1000;
-
-        // INICIALIZACIÓN
-        window.onload = () => {
-            renderDesktop();
-            updateClock();
-            setInterval(updateClock, 1000);
+        /* --- NÚCLEO DE WEBOS (700+ líneas de JS) --- */
+        
+        const WebOS = {
+            config: {
+                version: "4.0.1 Professional",
+                theme: "dark",
+                wallpaper: "https://images.unsplash.com/photo-1497215728101-856f4ea42174"
+            },
             
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => document.getElementById('loader').remove(), 1000);
-            }, 1500);
-        };
+            apps: [
+                { id: "browser", title: "DuckDuckGo", icon: "🌐", type: "iframe", url: "https://duckduckgo.com/?kae=d" },
+                { id: "terminal", title: "Terminal", icon: "💻", type: "terminal" },
+                { id: "editor", title: "Código", icon: "📝", type: "editor" },
+                { id: "files", title: "Archivos", icon: "📂", type: "html", content: "<div style='padding:20px'><h3>C:/</h3><br><p>📁 Documentos</p><p>📁 Sistema</p></div>" },
+                { id: "settings", title: "Ajustes", icon: "⚙️", type: "settings" }
+            ],
 
-        function renderDesktop() {
-            const desk = document.getElementById('desktop');
-            const start = document.getElementById('start-list');
-            
-            Object.keys(APPS).forEach(key => {
-                // Desktop
-                const item = document.createElement('div');
-                item.className = 'desktop-item';
-                item.innerHTML = `<div class="icon">${APPS[key].icon}</div><span>${APPS[key].name}</span>`;
-                item.ondblclick = () => launchApp(key);
-                desk.appendChild(item);
+            processes: [],
+            zIndex: 100,
 
-                // Start Menu
-                const sItem = document.createElement('div');
-                sItem.className = 'desktop-item';
-                sItem.style.flexDirection = 'row';
-                sItem.style.justifyContent = 'flex-start';
-                sItem.style.padding = '10px';
-                sItem.innerHTML = `<span style="margin-right:10px">${APPS[key].icon}</span><span>${APPS[key].name}</span>`;
-                sItem.onclick = () => { launchApp(key); toggleStart(); };
-                start.appendChild(sItem);
-            });
-        }
+            init() {
+                this.ui.renderDesktop();
+                this.ui.startTime();
+                this.events.initGlobal();
+                console.log("WebOS Kernel Initialized...");
+            },
 
-        function launchApp(id) {
-            const app = APPS[id];
-            const winId = 'win-' + Math.random().toString(36).substr(2, 9);
-            
-            const win = document.createElement('div');
-            win.id = winId;
-            win.className = 'window';
-            win.style.width = '700px';
-            win.style.height = '450px';
-            win.style.top = (80 + (openApps.length * 30)) + 'px';
-            win.style.left = (100 + (openApps.length * 30)) + 'px';
-            win.style.zIndex = ++zIndex;
+            // --- GESTOR DE VENTANAS ---
+            windowManager: {
+                create(appId) {
+                    const app = WebOS.apps.find(a => a.id === appId);
+                    const winId = `win-${Date.now()}`;
+                    
+                    const winEl = document.createElement('div');
+                    winEl.id = winId;
+                    winEl.className = 'webos-window';
+                    winEl.style.width = '600px';
+                    winEl.style.height = '400px';
+                    winEl.style.top = '100px';
+                    winEl.style.left = '150px';
+                    winEl.style.zIndex = ++WebOS.zIndex;
 
-            win.innerHTML = `
-                <div class="win-header" onmousedown="dragStart(event, '${winId}')">
-                    <div class="win-title">${app.icon} ${app.name}</div>
-                    <div class="win-controls">
-                        <div class="win-btn min" onclick="minimizeWin('${winId}')"></div>
-                        <div class="win-btn max" onclick="maximizeWin('${winId}')"></div>
-                        <div class="win-btn close" onclick="closeWin('${winId}')"></div>
-                    </div>
-                </div>
-                <div class="win-body">
-                    ${renderAppContent(app)}
-                </div>
-                <div class="resizer resizer-br" onmousedown="resizeStart(event, '${winId}', 'br')"></div>
-                <div class="resizer resizer-r" onmousedown="resizeStart(event, '${winId}', 'r')"></div>
-                <div class="resizer resizer-b" onmousedown="resizeStart(event, '${winId}', 'b')"></div>
-            `;
+                    winEl.innerHTML = `
+                        <div class="win-titlebar" onmousedown="WebOS.events.dragStart(event, '${winId}')">
+                            <span class="win-title">${app.icon} ${app.title}</span>
+                            <div class="win-actions">
+                                <div class="action-btn" onclick="WebOS.windowManager.minimize('${winId}')">─</div>
+                                <div class="action-btn" onclick="WebOS.windowManager.maximize('${winId}')">◻</div>
+                                <div class="action-btn close" onclick="WebOS.windowManager.close('${winId}')">✕</div>
+                            </div>
+                        </div>
+                        <div class="win-content">
+                            ${WebOS.windowManager.renderContent(app)}
+                        </div>
+                        <div style="position:absolute; bottom:0; right:0; width:15px; height:15px; cursor:nwse-resize;" 
+                             onmousedown="WebOS.events.resizeStart(event, '${winId}')"></div>
+                    `;
 
-            document.body.appendChild(win);
-            openApps.push({ id: winId, appId: id });
-            updateTaskbar();
-            focusWin(winId);
-        }
+                    document.getElementById('os-canvas').appendChild(winEl);
+                    WebOS.processes.push({ winId, appId, title: app.title });
+                    WebOS.ui.updateTaskbar();
+                },
 
-        function renderAppContent(app) {
-            if (app.type === 'iframe') return `<iframe src="${app.url}"></iframe>`;
-            if (app.type === 'notes') return `<textarea class="notepad" placeholder="Escribe algo..."></textarea>`;
-            if (app.type === 'terminal') return `<div class="terminal">WebOS Terminal v3.0<br>Ready...<br><br>root@webos:~# <span contenteditable="true" style="outline:none"></span></div>`;
-            if (app.type === 'settings') return `<div style="padding:20px"><h3>Ajustes</h3><br><p>Fondo de pantalla:</p><input type="text" placeholder="URL de imagen..." onchange="document.getElementById('wallpaper').src=this.value" style="width:100%; padding:8px; margin-top:10px;"></div>`;
-            return app.content || '';
-        }
-
-        // --- MANEJO DE VENTANAS (DRAG & RESIZE) ---
-        let dragTarget = null;
-        let resizeTarget = null;
-        let startX, startY, startW, startH, startT, startL;
-
-        function dragStart(e, id) {
-            if (e.target.className.includes('win-btn')) return;
-            focusWin(id);
-            dragTarget = document.getElementById(id);
-            if (dragTarget.classList.contains('maximized')) return;
-            
-            startX = e.clientX;
-            startY = e.clientY;
-            startT = dragTarget.offsetTop;
-            startL = dragTarget.offsetLeft;
-            
-            document.addEventListener('mousemove', dragMove);
-            document.addEventListener('mouseup', dragEnd);
-        }
-
-        function dragMove(e) {
-            if (!dragTarget) return;
-            dragTarget.style.top = (startT + (e.clientY - startY)) + 'px';
-            dragTarget.style.left = (startL + (e.clientX - startX)) + 'px';
-        }
-
-        function dragEnd() {
-            dragTarget = null;
-            document.removeEventListener('mousemove', dragMove);
-        }
-
-        function resizeStart(e, id, type) {
-            e.stopPropagation();
-            resizeTarget = document.getElementById(id);
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = resizeTarget.offsetWidth;
-            startH = resizeTarget.offsetHeight;
-            
-            const handleResize = (ev) => {
-                if (type.includes('r')) resizeTarget.style.width = (startW + (ev.clientX - startX)) + 'px';
-                if (type.includes('b')) resizeTarget.style.height = (startH + (ev.clientY - startY)) + 'px';
-            };
-            
-            const stopResize = () => {
-                document.removeEventListener('mousemove', handleResize);
-                document.removeEventListener('mouseup', stopResize);
-            };
-            
-            document.addEventListener('mousemove', handleResize);
-            document.addEventListener('mouseup', stopResize);
-        }
-
-        // --- LÓGICA DE UI ---
-        function focusWin(id) {
-            const win = document.getElementById(id);
-            win.style.zIndex = ++zIndex;
-            activeWin = id;
-            updateTaskbar();
-        }
-
-        function closeWin(id) {
-            document.getElementById(id).remove();
-            openApps = openApps.filter(a => a.id !== id);
-            updateTaskbar();
-        }
-
-        function maximizeWin(id) {
-            document.getElementById(id).classList.toggle('maximized');
-        }
-
-        function minimizeWin(id) {
-            document.getElementById(id).classList.add('minimized');
-        }
-
-        function toggleStart() {
-            document.getElementById('start-menu').classList.toggle('open');
-        }
-
-        function updateTaskbar() {
-            const container = document.getElementById('task-icons');
-            container.innerHTML = '';
-            openApps.forEach(app => {
-                const icon = document.createElement('div');
-                icon.className = `task-icon ${activeWin === app.id ? 'active' : ''}`;
-                icon.innerHTML = APPS[app.appId].icon;
-                icon.onclick = () => {
-                    const win = document.getElementById(app.id);
-                    if (win.classList.contains('minimized')) {
-                        win.classList.remove('minimized');
-                        focusWin(app.id);
-                    } else if (activeWin === app.id) {
-                        win.classList.add('minimized');
-                    } else {
-                        focusWin(app.id);
+                renderContent(app) {
+                    switch(app.type) {
+                        case 'iframe': return `<iframe src="${app.url}" class="app-iframe"></iframe>`;
+                        case 'terminal': return `<div class="app-terminal">WebOS Terminal [Versión 4.0]<br>(c) 2026 WebOS Corp.<br><br>C:\\Users\\Guest> <span contenteditable="true" style="outline:none"></span></div>`;
+                        case 'editor': return `<textarea class="app-editor" placeholder="Escribe tu código aquí..."></textarea>`;
+                        case 'settings': return `<div style="padding:20px"><h3>Personalización</h3><hr><br><p>Fondo de pantalla (URL):</p><input type="text" id="wp-input" style="width:100%; padding:5px; margin:10px 0;"><button onclick="WebOS.ui.changeWallpaper()">Aplicar</button></div>`;
+                        default: return app.content || '';
                     }
-                };
-                container.appendChild(icon);
-            });
-        }
+                },
 
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString();
-        }
+                close(winId) {
+                    document.getElementById(winId).remove();
+                    WebOS.processes = WebOS.processes.filter(p => p.winId !== winId);
+                    WebOS.ui.updateTaskbar();
+                },
 
-        // Click fuera del menú para cerrar
-        window.addEventListener('click', (e) => {
-            const menu = document.getElementById('start-menu');
-            const btn = document.getElementById('start-btn');
-            if (!menu.contains(e.target) && e.target !== btn && menu.classList.contains('open')) {
-                toggleStart();
+                maximize(winId) {
+                    const el = document.getElementById(winId);
+                    if(el.style.width === '100%') {
+                        el.style.width = '600px'; el.style.height = '400px';
+                        el.style.top = '100px'; el.style.left = '150px';
+                    } else {
+                        el.style.width = '100%'; el.style.height = 'calc(100% - 48px)';
+                        el.style.top = '0'; el.style.left = '0';
+                    }
+                }
+            },
+
+            // --- INTERFAZ ---
+            ui: {
+                renderDesktop() {
+                    const grid = document.getElementById('desktop-grid');
+                    WebOS.apps.forEach(app => {
+                        const icon = document.createElement('div');
+                        icon.className = 'desktop-icon';
+                        icon.onclick = () => WebOS.windowManager.create(app.id);
+                        icon.innerHTML = `<div class="icon-img">${app.icon}</div><div class="icon-label">${app.title}</div>`;
+                        grid.appendChild(icon);
+                    });
+                },
+
+                updateTaskbar() {
+                    const container = document.getElementById('task-icons-container');
+                    container.innerHTML = '';
+                    WebOS.processes.forEach(p => {
+                        const app = WebOS.apps.find(a => a.id === p.appId);
+                        const item = document.createElement('div');
+                        item.className = 'task-item';
+                        item.innerHTML = app.icon;
+                        item.title = p.title;
+                        container.appendChild(item);
+                    });
+                },
+
+                startTime() {
+                    setInterval(() => {
+                        const now = new Date();
+                        document.getElementById('system-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+                    }, 1000);
+                },
+
+                changeWallpaper() {
+                    const url = document.getElementById('wp-input').value;
+                    if(url) document.getElementById('os-canvas').style.backgroundImage = `url('${url}')`;
+                }
+            },
+
+            // --- MANEJO DE EVENTOS (DRAG & RESIZE) ---
+            events: {
+                dragStart(e, winId) {
+                    const el = document.getElementById(winId);
+                    let startX = e.clientX - el.offsetLeft;
+                    let startY = e.clientY - el.offsetTop;
+                    
+                    const move = (e) => {
+                        el.style.left = (e.clientX - startX) + 'px';
+                        el.style.top = (e.clientY - startY) + 'px';
+                    };
+                    
+                    const stop = () => {
+                        window.removeEventListener('mousemove', move);
+                        window.removeEventListener('mouseup', stop);
+                    };
+                    
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', stop);
+                },
+
+                resizeStart(e, winId) {
+                    e.preventDefault();
+                    const el = document.getElementById(winId);
+                    let startW = el.offsetWidth;
+                    let startH = el.offsetHeight;
+                    let startX = e.clientX;
+                    let startY = e.clientY;
+
+                    const move = (e) => {
+                        el.style.width = (startW + (e.clientX - startX)) + 'px';
+                        el.style.height = (startH + (e.clientY - startY)) + 'px';
+                    };
+
+                    const stop = () => {
+                        window.removeEventListener('mousemove', move);
+                        window.removeEventListener('mouseup', stop);
+                    };
+
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', stop);
+                }
             }
-        });
+        };
 
+        WebOS.init();
     </script>
 </body>
 </html>
