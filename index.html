@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebOS</title>
+<style>
+  /* Reset */
+  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+
+  /* Login */
+  #login-screen {
+    display:flex; justify-content:center; align-items:center; height:100vh; width:100vw;
+    background:#1e1e1e; color:white; flex-direction:column;
+  }
+  #login-screen input { margin:5px; padding:8px; border-radius:5px; border:none; }
+  #login-screen button { margin:5px; padding:8px 12px; border-radius:5px; border:none; cursor:pointer; }
+
+  /* Desktop */
+  #desktop {
+    display:none; height:100vh; width:100vw; position:relative;
+    background-size:cover; background-position:center;
+  }
+
+  /* Dock */
+  #dock {
+    position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+    display:flex; background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:20px;
+  }
+  .dock-item {
+    margin:0 10px; cursor:pointer; transition: transform 0.2s;
+  }
+  .dock-item:hover { transform: scale(1.3); }
+
+  /* Windows */
+  .window {
+    position:absolute; width:300px; height:200px; background:white; border-radius:8px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.3); padding:10px; display:none; flex-direction:column;
+  }
+  .window-header { display:flex; justify-content:flex-end; }
+  .window-header button { margin-left:5px; cursor:pointer; }
+  .window-content { flex:1; margin-top:5px; overflow:auto; }
+
+  /* Profile picture */
+  #profile-pic { width:60px; height:60px; border-radius:50%; object-fit:cover; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <h1>Bienvenido a WebOS</h1>
+  <input type="text" id="username" placeholder="Usuario">
+  <input type="password" id="password" placeholder="Contraseña">
+  <input type="file" id="profile" accept="image/*">
+  <input type="file" id="wallpaper" accept="image/*">
+  <button id="register">Registrarse</button>
+  <button id="login">Iniciar sesión</button>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+  <img id="profile-pic" src="" alt="Foto de perfil">
+  <div id="dock">
+    <div class="dock-item" data-app="notes">📝 Notas</div>
+    <div class="dock-item" data-app="calculator">🧮 Calculadora</div>
+    <div class="dock-item" data-app="terminal">💻 Terminal</div>
+  </div>
+
+  <!-- Notas -->
+  <div class="window" id="notes">
+    <div class="window-header">
+      <button onclick="closeWindow('notes')">✖</button>
+    </div>
+    <div class="window-content">
+      <textarea id="notes-content" style="width:100%; height:100%;"></textarea>
+    </div>
+  </div>
+
+  <!-- Calculadora -->
+  <div class="window" id="calculator">
+    <div class="window-header">
+      <button onclick="closeWindow('calculator')">✖</button>
+    </div>
+    <div class="window-content">
+      <input type="text" id="calc-display" readonly style="width:100%; padding:5px; margin-bottom:5px;">
+      <div>
+        <button onclick="pressCalc('1')">1</button>
+        <button onclick="pressCalc('2')">2</button>
+        <button onclick="pressCalc('3')">3</button>
+        <button onclick="pressCalc('+')">+</button>
+      </div>
+      <div>
+        <button onclick="pressCalc('4')">4</button>
+        <button onclick="pressCalc('5')">5</button>
+        <button onclick="pressCalc('6')">6</button>
+        <button onclick="pressCalc('-')">-</button>
+      </div>
+      <div>
+        <button onclick="pressCalc('7')">7</button>
+        <button onclick="pressCalc('8')">8</button>
+        <button onclick="pressCalc('9')">9</button>
+        <button onclick="pressCalc('*')">×</button>
+      </div>
+      <div>
+        <button onclick="pressCalc('0')">0</button>
+        <button onclick="pressCalc('.')">.</button>
+        <button onclick="calculate()">=</button>
+        <button onclick="pressCalc('/')">÷</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="window" id="terminal">
+    <div class="window-header">
+      <button onclick="closeWindow('terminal')">✖</button>
+    </div>
+    <div class="window-content">
+      <div id="terminal-output" style="height:150px; overflow:auto; background:#000; color:#0f0; padding:5px; font-family:monospace;"></div>
+      <input type="text" id="terminal-input" style="width:100%; padding:5px;" placeholder="Escribe comando y presiona Enter">
+    </div>
+  </div>
+</div>
+
+<script>
+  // Variables globales
+  let currentUser = null;
+
+  // Registro
+  document.getElementById('register').onclick = () => {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const profileFile = document.getElementById('profile').files[0];
+    const wallpaperFile = document.getElementById('wallpaper').files[0];
+
+    if(!user || !pass){ alert('Usuario y contraseña requeridos'); return; }
+
+    const readerProfile = new FileReader();
+    readerProfile.onload = function(e){
+      const profileData = e.target.result;
+
+      const readerWall = new FileReader();
+      readerWall.onload = function(ev){
+        const wallData = ev.target.result;
+
+        localStorage.setItem('WebOS_'+user, JSON.stringify({
+          password: pass,
+          profile: profileData,
+          wallpaper: wallData,
+          notes: ''
+        }));
+        alert('Cuenta creada!');
+      }
+      if(wallpaperFile) readerWall.readAsDataURL(wallpaperFile);
+      else readerWall.onload({target:{result:''}});
+    }
+    if(profileFile) readerProfile.readAsDataURL(profileFile);
+    else readerProfile.onload({target:{result:''}});
+  };
+
+  // Login
+  document.getElementById('login').onclick = () => {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const data = JSON.parse(localStorage.getItem('WebOS_'+user));
+    if(data && data.password === pass){
+      currentUser = user;
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('desktop').style.display='block';
+      loadUser(data);
+    } else alert('Usuario o contraseña incorrectos');
+  };
+
+  // Cargar usuario
+  function loadUser(data){
+    if(data.profile) document.getElementById('profile-pic').src = data.profile;
+    if(data.wallpaper) document.getElementById('desktop').style.backgroundImage = 'url('+data.wallpaper+')';
+    document.getElementById('notes-content').value = data.notes || '';
+  }
+
+  // Dock click
+  document.querySelectorAll('.dock-item').forEach(item => {
+    item.onclick = () => { openWindow(item.dataset.app); }
+  });
+
+  function openWindow(id){
+    const win = document.getElementById(id);
+    win.style.display='flex';
+    win.style.top='100px';
+    win.style.left='100px';
+  }
+  function closeWindow(id){
+    document.getElementById(id).style.display='none';
+  }
+
+  // Calculadora
+  let calcValue = '';
+  function pressCalc(val){ calcValue += val; document.getElementById('calc-display').value = calcValue; }
+  function calculate(){
+    try{ calcValue = eval(calcValue).toString(); }
+    catch(e){ calcValue='Error'; }
+    document.getElementById('calc-display').value = calcValue;
+  }
+
+  // Terminal
+  const termInput = document.getElementById('terminal-input');
+  const termOutput = document.getElementById('terminal-output');
+  termInput.addEventListener('keypress', (e)=>{
+    if(e.key==='Enter'){
+      const cmd = termInput.value;
+      termOutput.innerHTML += '<div>$ '+cmd+'</div>';
+      if(cmd==='help') termOutput.innerHTML += '<div>Comandos: help, date, echo [texto]</div>';
+      else if(cmd==='date') termOutput.innerHTML += '<div>'+new Date()+'</div>';
+      else if(cmd.startsWith('echo ')) termOutput.innerHTML += '<div>'+cmd.slice(5)+'</div>';
+      else termOutput.innerHTML += '<div>Comando no reconocido</div>';
+      termInput.value='';
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+  });
+
+  // Guardar notas automáticamente
+  document.getElementById('notes-content').addEventListener('input', ()=>{
+    if(currentUser){
+      const data = JSON.parse(localStorage.getItem('WebOS_'+currentUser));
+      data.notes = document.getElementById('notes-content').value;
+      localStorage.setItem('WebOS_'+currentUser, JSON.stringify(data));
+    }
+  });
+</script>
+
+</body>
+</html>
