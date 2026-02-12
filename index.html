@@ -3,397 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini OS - Web Environment</title>
+    <title>WebOS - Professional Desktop Environment</title>
     <style>
-        /* --- ESTILOS GENERALES Y VARIABLES --- */
         :root {
-            --bg-color: #1e1e2e;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-color: #ffffff;
-            --accent: #89b4fa;
-            --taskbar-height: 50px;
+            --accent: #0078d4;
+            --bg-glass: rgba(25, 25, 25, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff;
+            --taskbar-bg: rgba(15, 15, 15, 0.85);
+            --font-stack: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(135deg, #1e1e2e 0%, #313244 50%, #45475a 100%);
+            font-family: var(--font-stack);
+            background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
             height: 100vh;
             overflow: hidden;
-            color: var(--text-color);
-            position: relative;
+            color: var(--text-main);
+            user-select: none;
         }
 
-        /* --- ESCRITORIO --- */
+        /* --- DESKTOP --- */
         #desktop {
-            height: calc(100vh - var(--taskbar-height));
-            width: 100%;
+            width: 100vw;
+            height: calc(100vh - 48px);
             position: relative;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 100px);
+            grid-template-rows: repeat(auto-fill, 110px);
+            grid-auto-flow: column;
+            gap: 10px;
+            z-index: 1;
         }
 
-        /* Iconos de Escritorio */
-        .desktop-icon {
-            width: 80px;
-            height: 90px;
+        .desktop-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: 0.2s;
+            text-align: center;
+            padding: 5px;
         }
 
-        .desktop-icon:hover { background: var(--glass-bg); }
-        .desktop-icon span { font-size: 32px; margin-bottom: 5px; }
-        .desktop-icon p { font-size: 12px; text-shadow: 0 1px 2px black; }
+        .desktop-item:hover { background: rgba(255, 255, 255, 0.15); }
+        .desktop-item img { width: 48px; height: 48px; pointer-events: none; }
+        .desktop-item span { font-size: 12px; margin-top: 8px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 
-        /* --- VENTANAS (WINDOWS) --- */
+        /* --- WINDOW SYSTEM --- */
         .window {
             position: absolute;
-            background: rgba(30, 30, 46, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: none; /* Oculto por defecto */
+            background: var(--bg-glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-width: 300px;
-            min-height: 200px;
-            transition: transform 0.1s, opacity 0.2s;
+            min-width: 250px;
+            min-height: 150px;
+            z-index: 10;
         }
 
-        .window.active { display: flex; animation: popIn 0.2s ease-out; }
-
-        @keyframes popIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .window.minimized { display: none; }
+        .window.maximized {
+            width: 100% !important;
+            height: calc(100% - 48px) !important;
+            top: 0 !important;
+            left: 0 !important;
+            border-radius: 0;
         }
 
-        .title-bar {
+        .window-header {
+            height: 40px;
             background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            cursor: grab;
+            padding: 0 12px;
+            cursor: default;
         }
 
-        .title-bar:active { cursor: grabbing; }
+        .window-title { flex: 1; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .window-controls { display: flex; gap: 8px; }
 
-        .controls button {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: none;
-            margin-left: 5px;
-            cursor: pointer;
+        .control-btn {
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; cursor: pointer; transition: 0.2s;
         }
-        .close-btn { background: #ff5f56; }
-        .min-btn { background: #ffbd2e; }
-        .max-btn { background: #27c93f; }
+        .control-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .close-btn:hover { background: #e81123 !important; }
 
-        .window-content {
-            flex: 1;
-            padding: 20px;
-            color: #cdd6f4;
-            overflow: auto;
+        .window-body { flex: 1; position: relative; overflow: auto; background: rgba(0,0,0,0.2); }
+
+        /* Resize Handle */
+        .resizer {
+            position: absolute;
+            width: 15px; height: 15px;
+            right: 0; bottom: 0;
+            cursor: nwse-resize;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.2) 50%);
         }
 
-        /* Estilos específicos de Apps */
-        textarea {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            color: inherit;
-            resize: none;
-            outline: none;
-        }
-        
-        .code-editor { font-family: 'Courier New', monospace; }
-
-        /* --- BARRA DE TAREAS --- */
+        /* --- TASKBAR --- */
         #taskbar {
+            height: 48px;
+            width: 100%;
+            background: var(--taskbar-bg);
+            backdrop-filter: blur(15px);
             position: absolute;
             bottom: 0;
-            width: 100%;
-            height: var(--taskbar-height);
-            background: rgba(20, 20, 30, 0.8);
-            backdrop-filter: blur(15px);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-top: 1px solid var(--glass-border);
-            z-index: 1000;
+            padding: 0 10px;
+            border-top: 1px solid var(--border-glass);
+            z-index: 9999;
         }
 
-        .start-btn {
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.2s;
+        #start-btn {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; cursor: pointer; margin-right: 10px;
+            transition: 0.2s; font-size: 20px; color: #38bdf8;
         }
-        .start-btn:hover { transform: scale(1.1); }
+        #start-btn:hover { background: rgba(255,255,255,0.1); }
 
-        .task-icons {
-            display: flex;
-            gap: 10px;
-        }
-        
+        .taskbar-icons { flex: 1; display: flex; gap: 5px; justify-content: center; }
         .task-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border-radius: 8px;
-            cursor: pointer;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; cursor: pointer; border-bottom: 2px solid transparent;
         }
-        .task-icon:hover { background: var(--glass-bg); }
+        .task-icon.active { border-bottom: 2px solid var(--accent); background: rgba(255,255,255,0.1); }
 
-        .clock {
-            font-size: 14px;
-            font-weight: 500;
-        }
+        .system-tray { display: flex; align-items: center; gap: 15px; font-size: 12px; padding-right: 10px; }
 
-        /* --- MENÚ DE INICIO --- */
+        /* --- START MENU --- */
         #start-menu {
             position: absolute;
-            bottom: 60px;
-            left: 10px;
-            width: 300px;
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
+            bottom: 58px; left: 10px;
+            width: 400px; height: 500px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            z-index: 10000;
+            transform: translateY(600px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             padding: 20px;
-            display: none;
-            z-index: 1001;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
-        
-        #start-menu.show { display: block; animation: slideUp 0.2s; }
-        
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        #start-menu.open { transform: translateY(0); }
 
-        .start-item {
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .start-item:hover { background: var(--glass-bg); }
+        /* --- APPS STYLES --- */
+        .app-iframe { width: 100%; height: 100%; border: none; }
+        .notepad-area { width: 100%; height: 100%; background: #1e1e1e; color: #fff; padding: 15px; border: none; outline: none; resize: none; font-family: monospace; }
+        .terminal-body { background: #000; color: #0f0; padding: 15px; height: 100%; font-family: 'Consolas', monospace; overflow-y: auto; }
 
     </style>
 </head>
 <body>
 
     <div id="desktop">
-        <div class="desktop-icon" onclick="openWindow('notepad')">
-            <span>📝</span>
-            <p>Notas</p>
         </div>
-        <div class="desktop-icon" onclick="openWindow('browser')">
-            <span>🌐</span>
-            <p>Navegador</p>
-        </div>
-        <div class="desktop-icon" onclick="openWindow('terminal')">
-            <span>💻</span>
-            <p>Terminal</p>
-        </div>
-        <div class="desktop-icon" onclick="openWindow('calculator')">
-            <span>🧮</span>
-            <p>Calculadora</p>
-        </div>
-    </div>
-
-    <div id="notepad" class="window" style="top: 100px; left: 100px; width: 400px; height: 300px;">
-        <div class="title-bar" onmousedown="startDrag(event, 'notepad')">
-            <span>Bloc de Notas</span>
-            <div class="controls">
-                <button class="min-btn"></button>
-                <button class="max-btn"></button>
-                <button class="close-btn" onclick="closeWindow('notepad')"></button>
-            </div>
-        </div>
-        <div class="window-content">
-            <textarea placeholder="Escribe aquí tus ideas..."></textarea>
-        </div>
-    </div>
-
-    <div id="browser" class="window" style="top: 50px; left: 150px; width: 600px; height: 400px;">
-        <div class="title-bar" onmousedown="startDrag(event, 'browser')">
-            <span>Gemini Browser</span>
-            <div class="controls">
-                <button class="min-btn"></button>
-                <button class="max-btn"></button>
-                <button class="close-btn" onclick="closeWindow('browser')"></button>
-            </div>
-        </div>
-        <div class="window-content" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
-            <h2>Google</h2>
-            <input type="text" placeholder="Buscar en la web..." style="width: 80%; padding: 10px; margin: 20px auto; border-radius: 20px; border: none; background: #fff; color: #333;">
-            <p style="font-size: 0.8em; color: #aaa;">(Simulación de interfaz)</p>
-        </div>
-    </div>
-
-    <div id="terminal" class="window" style="top: 150px; left: 200px; width: 500px; height: 300px; background: rgba(0,0,0,0.9);">
-        <div class="title-bar" onmousedown="startDrag(event, 'terminal')" style="background: #333;">
-            <span>Terminal</span>
-            <div class="controls">
-                <button class="min-btn"></button>
-                <button class="max-btn"></button>
-                <button class="close-btn" onclick="closeWindow('terminal')"></button>
-            </div>
-        </div>
-        <div class="window-content code-editor" style="color: #0f0;">
-            <p>root@gemini-os:~$ <span id="typing"></span><span style="animation: blink 1s infinite">|</span></p>
-        </div>
-    </div>
-
-    <div id="calculator" class="window" style="top: 80px; left: 400px; width: 250px; height: 350px;">
-        <div class="title-bar" onmousedown="startDrag(event, 'calculator')">
-            <span>Calculadora</span>
-            <div class="controls">
-                <button class="min-btn"></button>
-                <button class="max-btn"></button>
-                <button class="close-btn" onclick="closeWindow('calculator')"></button>
-            </div>
-        </div>
-        <div class="window-content" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
-            <div style="grid-column: span 4; background: rgba(255,255,255,0.1); padding: 10px; text-align: right; margin-bottom: 10px;">0</div>
-            <button style="padding: 10px;">7</button><button style="padding: 10px;">8</button><button style="padding: 10px;">9</button><button style="padding: 10px;">/</button>
-            <button style="padding: 10px;">4</button><button style="padding: 10px;">5</button><button style="padding: 10px;">6</button><button style="padding: 10px;">*</button>
-            <button style="padding: 10px;">1</button><button style="padding: 10px;">2</button><button style="padding: 10px;">3</button><button style="padding: 10px;">-</button>
-            <button style="padding: 10px;">0</button><button style="padding: 10px;">.</button><button style="padding: 10px;">=</button><button style="padding: 10px;">+</button>
-        </div>
-    </div>
 
     <div id="start-menu">
-        <h3 style="margin-bottom: 15px;">Aplicaciones</h3>
-        <div class="start-item" onclick="openWindow('notepad')"><span>📝</span> Bloc de Notas</div>
-        <div class="start-item" onclick="openWindow('browser')"><span>🌐</span> Navegador</div>
-        <div class="start-item" onclick="openWindow('terminal')"><span>💻</span> Terminal</div>
-        <div class="start-item" onclick="openWindow('calculator')"><span>🧮</span> Calculadora</div>
-        <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
-        <div class="start-item" style="color: #ff5f56;"><span>⭕</span> Apagar</div>
+        <div style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">Aplicaciones WebOS</div>
+        <div id="app-list"></div>
     </div>
 
     <div id="taskbar">
-        <div class="start-btn" onclick="toggleStartMenu()">💠</div>
-        <div class="task-icons">
-            <div class="task-icon" onclick="openWindow('browser')">🌐</div>
-            <div class="task-icon" onclick="openWindow('terminal')">💻</div>
-            <div class="task-icon" onclick="openWindow('notepad')">📝</div>
+        <div id="start-btn">⊞</div>
+        <div class="taskbar-icons" id="taskbar-icons"></div>
+        <div class="system-tray">
+            <span id="tray-wifi">📶</span>
+            <span id="tray-sound">🔊</span>
+            <div id="clock" style="text-align: right;">
+                <div id="time">00:00:00</div>
+                <div id="date" style="font-size: 10px; opacity: 0.7;">01/01/2024</div>
+            </div>
         </div>
-        <div class="clock" id="clock">12:00 PM</div>
     </div>
 
     <script>
-        // --- LOGICA DEL RELOJ ---
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        // CONFIGURACIÓN DE APPS
+        const APPS = {
+            'browser': { name: 'Navegador', icon: '🌐', type: 'iframe', content: 'https://www.bing.com' },
+            'notepad': { name: 'Bloc de Notas', icon: '📝', type: 'html', content: '<textarea class="notepad-area" placeholder="Empieza a escribir..."></textarea>' },
+            'terminal': { name: 'Terminal', icon: '💻', type: 'terminal', content: '' },
+            'calc': { name: 'Calculadora', icon: '🧮', type: 'iframe', content: 'https://www.desmos.com/scientific?lang=es' },
+            'files': { name: 'Archivos', icon: '📂', type: 'html', content: '<div style="padding:20px">Sistema de archivos de WebOS v1.0<br><br>> Documentos<br>> Imágenes<br>> Sistema</div>' },
+            'settings': { name: 'Configuración', icon: '⚙️', type: 'html', content: '<div style="padding:20px">Personalización de Escritorio<br><br><button onclick="changeWallpaper()">Cambiar Fondo</button></div>' }
+        };
+
+        let activeWindows = [];
+        let focusedWindow = null;
+        let zIndexBase = 100;
+
+        // INICIALIZACIÓN
+        function init() {
+            const desktop = document.getElementById('desktop');
+            const appList = document.getElementById('app-list');
+
+            Object.keys(APPS).forEach(key => {
+                // Iconos escritorio
+                const item = document.createElement('div');
+                item.className = 'desktop-item';
+                item.innerHTML = `<span style="font-size:32px">${APPS[key].icon}</span><span>${APPS[key].name}</span>`;
+                item.onclick = () => createWindow(key);
+                desktop.appendChild(item);
+
+                // Start menu items
+                const sItem = document.createElement('div');
+                sItem.className = 'desktop-item';
+                sItem.style.flexDirection = 'row';
+                sItem.style.justifyContent = 'flex-start';
+                sItem.style.width = '100%';
+                sItem.style.padding = '10px';
+                sItem.innerHTML = `<span style="margin-right:15px">${APPS[key].icon}</span><span>${APPS[key].name}</span>`;
+                sItem.onclick = () => { createWindow(key); toggleStartMenu(); };
+                appList.appendChild(sItem);
+            });
+
+            updateTime();
+            setInterval(updateTime, 1000);
         }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // --- GESTIÓN DE VENTANAS ---
-        let zIndexCounter = 10;
-
-        function openWindow(id) {
-            const win = document.getElementById(id);
-            win.style.display = 'flex';
-            win.classList.add('active');
-            bringToFront(win);
-            document.getElementById('start-menu').classList.remove('show');
+        // SISTEMA DE VENTANAS
+        function createWindow(appId) {
+            const app = APPS[appId];
+            const winId = 'win-' + Math.random().toString(36).substr(2, 9);
             
-            // Efecto especial para la terminal
-            if(id === 'terminal') typeEffect();
+            const win = document.createElement('div');
+            win.id = winId;
+            win.className = 'window';
+            win.style.width = '600px';
+            win.style.height = '400px';
+            win.style.top = (50 + (activeWindows.length * 20)) + 'px';
+            win.style.left = (50 + (activeWindows.length * 20)) + 'px';
+            win.style.zIndex = ++zIndexBase;
+
+            win.innerHTML = `
+                <div class="window-header" onmousedown="dragWindow('${winId}', event)">
+                    <div class="window-title"><span>${app.icon}</span> ${app.name}</div>
+                    <div class="window-controls">
+                        <div class="control-btn" onclick="minimizeWindow('${winId}')">─</div>
+                        <div class="control-btn" onclick="maximizeWindow('${winId}')">◻</div>
+                        <div class="control-btn close-btn" onclick="closeWindow('${winId}')">✕</div>
+                    </div>
+                </div>
+                <div class="window-body">
+                    ${app.type === 'iframe' ? `<iframe src="${app.content}" class="app-iframe"></iframe>` : app.content}
+                    ${app.type === 'terminal' ? `<div class="terminal-body">WebOS Terminal v1.0<br>Ready...<br><br>C:\\Users\\Guest> <span contenteditable="true" style="outline:none"></span></div>` : ''}
+                </div>
+                <div class="resizer" onmousedown="resizeWindow('${winId}', event)"></div>
+            `;
+
+            document.body.appendChild(win);
+            activeWindows.push({ id: winId, appId: appId });
+            updateTaskbar();
+            focusWindow(winId);
         }
 
-        function closeWindow(id) {
-            const win = document.getElementById(id);
-            win.style.display = 'none';
-            win.classList.remove('active');
+        // DRAG & DROP LOGIC
+        function dragWindow(winId, e) {
+            const win = document.getElementById(winId);
+            if (win.classList.contains('maximized')) return;
+            
+            focusWindow(winId);
+            let pos1 = 0, pos2 = 0, pos3 = e.clientX, pos4 = e.clientY;
+            
+            document.onmousemove = (e) => {
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                win.style.top = (win.offsetTop - pos2) + "px";
+                win.style.left = (win.offsetLeft - pos1) + "px";
+            };
+            
+            document.onmouseup = () => {
+                document.onmousemove = null;
+                document.onmouseup = null;
+            };
         }
 
+        // RESIZE LOGIC
+        function resizeWindow(winId, e) {
+            e.preventDefault();
+            const win = document.getElementById(winId);
+            const startWidth = win.offsetWidth;
+            const startHeight = win.offsetHeight;
+            const startX = e.clientX;
+            const startY = e.clientY;
+
+            document.onmousemove = (e) => {
+                const w = startWidth + (e.clientX - startX);
+                const h = startHeight + (e.clientY - startY);
+                if (w > 200) win.style.width = w + 'px';
+                if (h > 150) win.style.height = h + 'px';
+            };
+
+            document.onmouseup = () => {
+                document.onmousemove = null;
+            };
+        }
+
+        // WINDOW CONTROLS
+        function closeWindow(winId) {
+            document.getElementById(winId).remove();
+            activeWindows = activeWindows.filter(w => w.id !== winId);
+            updateTaskbar();
+        }
+
+        function maximizeWindow(winId) {
+            document.getElementById(winId).classList.toggle('maximized');
+        }
+
+        function minimizeWindow(winId) {
+            document.getElementById(winId).classList.add('minimized');
+        }
+
+        function focusWindow(winId) {
+            document.querySelectorAll('.window').forEach(w => w.style.zIndex = 10);
+            const win = document.getElementById(winId);
+            win.style.zIndex = ++zIndexBase;
+            win.classList.remove('minimized');
+            updateTaskbar();
+        }
+
+        // UI HELPERS
         function toggleStartMenu() {
-            document.getElementById('start-menu').classList.toggle('show');
+            document.getElementById('start-menu').classList.toggle('open');
         }
 
-        function bringToFront(element) {
-            zIndexCounter++;
-            element.style.zIndex = zIndexCounter;
+        function updateTaskbar() {
+            const container = document.getElementById('taskbar-icons');
+            container.innerHTML = '';
+            activeWindows.forEach(w => {
+                const icon = document.createElement('div');
+                icon.className = 'task-icon';
+                icon.innerHTML = APPS[w.appId].icon;
+                icon.onclick = () => focusWindow(w.id);
+                container.appendChild(icon);
+            });
         }
 
-        // --- SISTEMA DE ARRASTRE (DRAG & DROP) ---
-        let isDragging = false;
-        let currentWindow = null;
-        let offset = { x: 0, y: 0 };
-
-        function startDrag(e, windowId) {
-            isDragging = true;
-            currentWindow = document.getElementById(windowId);
-            bringToFront(currentWindow);
-            
-            // Calcular offset del mouse respecto a la ventana
-            offset.x = e.clientX - currentWindow.offsetLeft;
-            offset.y = e.clientY - currentWindow.offsetTop;
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date').textContent = now.toLocaleDateString();
         }
 
-        document.onmousemove = function(e) {
-            if (isDragging && currentWindow) {
-                e.preventDefault();
-                currentWindow.style.left = (e.clientX - offset.x) + 'px';
-                currentWindow.style.top = (e.clientY - offset.y) + 'px';
-            }
+        function changeWallpaper() {
+            const colors = ['#2c3e50', '#8e44ad', '#2980b9', '#16a085', '#27ae60'];
+            document.body.style.background = colors[Math.floor(Math.random()*colors.length)];
+        }
+
+        // Event Listeners
+        document.getElementById('start-btn').onclick = (e) => {
+            e.stopPropagation();
+            toggleStartMenu();
         };
 
-        document.onmouseup = function() {
-            isDragging = false;
-            currentWindow = null;
+        document.body.onclick = () => {
+            document.getElementById('start-menu').classList.remove('open');
         };
 
-        // Click fuera para cerrar menú inicio
-        document.addEventListener('click', function(e) {
-            const menu = document.getElementById('start-menu');
-            const startBtn = document.querySelector('.start-btn');
-            if (!menu.contains(e.target) && !startBtn.contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        });
-        
-        // Efecto Terminal
-        function typeEffect() {
-            const text = "sudo apt-get update && upgrade...";
-            const el = document.getElementById('typing');
-            el.innerHTML = "";
-            let i = 0;
-            const timer = setInterval(() => {
-                if (i < text.length) {
-                    el.innerHTML += text.charAt(i);
-                    i++;
-                } else {
-                    clearInterval(timer);
-                }
-            }, 100);
-        }
-
+        window.onload = init;
     </script>
 </body>
 </html>
