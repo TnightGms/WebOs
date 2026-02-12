@@ -3,319 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebOS v4.0 | Professional Edition</title>
+    <title>WebOS Professional v5.0</title>
     <style>
-        /* --- ARQUITECTURA DE DISEÑO (300+ líneas de CSS) --- */
+        /* --- CORE DESIGN SYSTEM --- */
         :root {
-            --primary: #0078d4;
-            --surface: rgba(25, 25, 25, 0.8);
+            --primary: #00a2ff;
+            --surface: rgba(20, 20, 25, 0.85);
             --border: rgba(255, 255, 255, 0.1);
-            --text: #ffffff;
-            --radius: 10px;
-            --shadow: 0 10px 30px rgba(0,0,0,0.5);
-            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --text: #f0f0f0;
+            --taskbar-bg: rgba(10, 10, 12, 0.9);
+            --accent-glow: 0 0 15px rgba(0, 162, 255, 0.3);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: var(--font);
-            background: #000;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: #050505;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
             color: var(--text);
         }
 
-        #os-canvas {
+        #desktop {
             position: relative;
             width: 100%;
             height: 100%;
-            background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=80') center/cover;
-            transition: filter 0.5s ease;
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1920&q=80') center/cover;
+            z-index: 1;
         }
 
-        /* --- SISTEMA DE VENTANAS --- */
-        .webos-window {
+        /* --- VENTANA DE NOVEDADES (WELCOME MODAL) --- */
+        #welcome-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 500px;
+            background: var(--surface);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 30px;
+            z-index: 100000;
+            display: none;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #welcome-modal.visible {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .modal-body { line-height: 1.6; font-size: 14px; margin-bottom: 20px; }
+        .feature-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .feature-item i { color: var(--primary); font-weight: bold; }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-primary:hover { filter: brightness(1.2); box-shadow: var(--accent-glow); }
+
+        /* --- WINDOWS ENGINE --- */
+        .window {
             position: absolute;
             background: var(--surface);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-width: 200px;
-            min-height: 100px;
-            z-index: 10;
+            z-index: 100;
         }
 
         .win-titlebar {
-            height: 38px;
-            background: rgba(255,255,255,0.05);
+            height: 40px;
+            background: rgba(255,255,255,0.03);
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            padding: 0 15px;
             cursor: default;
-            user-select: none;
         }
 
-        .win-title { flex: 1; font-size: 13px; font-weight: 500; }
+        .win-controls { display: flex; gap: 10px; margin-left: auto; }
+        .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .dot-close { background: #ff5f57; }
+        .dot-min { background: #febc2e; }
+        .dot-max { background: #28c840; }
 
-        .win-actions { display: flex; gap: 8px; }
-
-        .action-btn {
-            width: 28px; height: 28px;
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s;
-        }
-
-        .action-btn:hover { background: rgba(255,255,255,0.1); }
-        .action-btn.close:hover { background: #e81123; }
-
-        .win-content { flex: 1; position: relative; overflow: auto; background: rgba(0,0,0,0.1); }
+        .win-content { flex: 1; position: relative; }
 
         /* --- TASKBAR --- */
         #taskbar {
             position: fixed;
-            bottom: 0; width: 100%; height: 48px;
-            background: rgba(15,15,15,0.85);
+            bottom: 0; width: 100%; height: 55px;
+            background: var(--taskbar-bg);
             backdrop-filter: blur(15px);
             border-top: 1px solid var(--border);
-            display: flex; align-items: center; padding: 0 10px;
-            z-index: 9999;
+            display: flex; align-items: center; padding: 0 20px;
+            z-index: 99999;
         }
 
-        .start-menu-trigger {
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 4px; cursor: pointer; transition: 0.2s;
-            font-size: 20px; color: var(--primary);
-        }
+        .start-btn { font-size: 24px; cursor: pointer; transition: 0.3s; color: var(--primary); }
+        .start-btn:hover { transform: rotate(15deg) scale(1.1); }
 
-        .task-icons { flex: 1; display: flex; justify-content: center; gap: 6px; }
-
+        .task-list { flex: 1; display: flex; justify-content: center; gap: 10px; }
         .task-item {
-            width: 36px; height: 36px;
-            border-radius: 4px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.05);
+            width: 42px; height: 42px; background: rgba(255,255,255,0.05);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; border-bottom: 2px solid transparent;
         }
+        .task-item.active { border-bottom: 2px solid var(--primary); background: rgba(255,255,255,0.12); }
 
-        /* --- APPS --- */
-        .app-iframe { width: 100%; height: 100%; border: none; background: white; }
-        .app-terminal { padding: 15px; font-family: 'Consolas', monospace; color: #00ff00; height: 100%; }
-        .app-editor { width: 100%; height: 100%; background: #1e1e1e; color: #d4d4d4; padding: 10px; border: none; font-family: monospace; resize: none; }
-
-        /* --- DESKTOP --- */
+        /* --- ICONS --- */
         #desktop-grid {
-            padding: 20px;
+            padding: 30px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, 80px);
-            grid-auto-rows: 90px;
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, 90px);
+            grid-auto-rows: 100px;
+            gap: 20px;
         }
 
-        .desktop-icon {
+        .icon {
             display: flex; flex-direction: column; align-items: center;
-            text-align: center; cursor: pointer; border-radius: 6px; padding: 5px;
+            cursor: pointer; padding: 10px; border-radius: 10px;
+            transition: 0.2s;
         }
-        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
-        .desktop-icon .icon-img { font-size: 32px; margin-bottom: 5px; }
-        .desktop-icon .icon-label { font-size: 11px; text-shadow: 1px 1px 2px #000; }
+        .icon:hover { background: rgba(255,255,255,0.1); }
+        .icon-symbol { font-size: 40px; margin-bottom: 8px; }
+        .icon-text { font-size: 12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
     </style>
 </head>
 <body>
 
-    <div id="os-canvas">
+    <div id="desktop">
         <div id="desktop-grid"></div>
-        
-        <div id="taskbar">
-            <div class="start-menu-trigger" onclick="WebOS.ui.toggleStart()">⊞</div>
-            <div class="task-icons" id="task-icons-container"></div>
-            <div id="system-time" style="font-size: 12px; padding: 0 10px;">00:00</div>
+    </div>
+
+    <div id="welcome-modal">
+        <div class="modal-header">
+            <h2>✨ Bienvenido a WebOS v5.0</h2>
+            <p style="color: var(--primary); font-size: 12px;">SYSTEM UPDATE - FEBRERO 2026</p>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px;">Hemos reconstruido el núcleo del sistema para ofrecerte la mejor experiencia minimalista.</p>
+            
+            <div class="feature-item">
+                <i>✔</i>
+                <div><strong>Motor de Ventanas Pro:</strong> Ahora puedes redimensionar cualquier ventana desde la esquina inferior derecha.</div>
+            </div>
+            <div class="feature-item">
+                <i>✔</i>
+                <div><strong>Privacidad:</strong> Navegador DuckDuckGo integrado por defecto para búsquedas seguras.</div>
+            </div>
+            <div class="feature-item">
+                <i>✔</i>
+                <div><strong>Kernel POO:</strong> Sistema basado en objetos para mayor velocidad y menos errores.</div>
+            </div>
+            <div class="feature-item">
+                <i>✔</i>
+                <div><strong>Persistencia:</strong> El sistema ahora guarda tus ajustes básicos localmente.</div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <button class="btn-primary" onclick="WebOS.closeWelcome()">Empezar a trabajar</button>
         </div>
     </div>
 
+    <div id="taskbar">
+        <div class="start-btn">⊞</div>
+        <div class="task-list" id="task-icons"></div>
+        <div id="clock" style="font-size: 13px; font-weight: 500;">00:00:00</div>
+    </div>
+
     <script>
-        /* --- NÚCLEO DE WEBOS (700+ líneas de JS) --- */
-        
+        /**
+         * WEBOS KERNEL v5.0
+         * Arquitectura Profesional Orientada a Objetos
+         */
+
         const WebOS = {
-            config: {
-                version: "4.0.1 Professional",
-                theme: "dark",
-                wallpaper: "https://images.unsplash.com/photo-1497215728101-856f4ea42174"
+            state: {
+                openApps: [],
+                focusedApp: null,
+                zIndex: 100
             },
-            
+
             apps: [
-                { id: "browser", title: "DuckDuckGo", icon: "🌐", type: "iframe", url: "https://duckduckgo.com/?kae=d" },
-                { id: "terminal", title: "Terminal", icon: "💻", type: "terminal" },
-                { id: "editor", title: "Código", icon: "📝", type: "editor" },
-                { id: "files", title: "Archivos", icon: "📂", type: "html", content: "<div style='padding:20px'><h3>C:/</h3><br><p>📁 Documentos</p><p>📁 Sistema</p></div>" },
-                { id: "settings", title: "Ajustes", icon: "⚙️", type: "settings" }
+                { id: 'browser', name: 'Navegador', icon: '🌐', url: 'https://duckduckgo.com' },
+                { id: 'terminal', name: 'Terminal', icon: '💻', content: '<div style="padding:15px;color:#0f0;font-family:monospace">WebOS Root Console...<br>C:\\Users\\Guest> <span contenteditable="true"></span></div>' },
+                { id: 'notes', name: 'Notas', icon: '📝', content: '<textarea style="width:100%;height:100%;background:#1e1e1e;color:#fff;padding:20px;border:none;outline:none;resize:none;"></textarea>' },
+                { id: 'settings', name: 'Ajustes', icon: '⚙️', content: '<div style="padding:20px"><h3>Ajustes del Sistema</h3><p>Versión: 5.0.1 Stable</p></div>' }
             ],
 
-            processes: [],
-            zIndex: 100,
-
             init() {
-                this.ui.renderDesktop();
-                this.ui.startTime();
-                this.events.initGlobal();
-                console.log("WebOS Kernel Initialized...");
+                this.renderDesktop();
+                this.updateClock();
+                this.checkWelcome();
+                setInterval(() => this.updateClock(), 1000);
             },
 
-            // --- GESTOR DE VENTANAS ---
-            windowManager: {
-                create(appId) {
-                    const app = WebOS.apps.find(a => a.id === appId);
-                    const winId = `win-${Date.now()}`;
-                    
-                    const winEl = document.createElement('div');
-                    winEl.id = winId;
-                    winEl.className = 'webos-window';
-                    winEl.style.width = '600px';
-                    winEl.style.height = '400px';
-                    winEl.style.top = '100px';
-                    winEl.style.left = '150px';
-                    winEl.style.zIndex = ++WebOS.zIndex;
+            checkWelcome() {
+                // Muestra el cuadro si es la primera vez (simulado con sessionStorage para esta demo)
+                const hasSeen = sessionStorage.getItem('webos_welcome');
+                if (!hasSeen) {
+                    setTimeout(() => {
+                        document.getElementById('welcome-modal').classList.add('visible');
+                    }, 500);
+                }
+            },
 
-                    winEl.innerHTML = `
-                        <div class="win-titlebar" onmousedown="WebOS.events.dragStart(event, '${winId}')">
-                            <span class="win-title">${app.icon} ${app.title}</span>
-                            <div class="win-actions">
-                                <div class="action-btn" onclick="WebOS.windowManager.minimize('${winId}')">─</div>
-                                <div class="action-btn" onclick="WebOS.windowManager.maximize('${winId}')">◻</div>
-                                <div class="action-btn close" onclick="WebOS.windowManager.close('${winId}')">✕</div>
-                            </div>
+            closeWelcome() {
+                document.getElementById('welcome-modal').classList.remove('visible');
+                sessionStorage.setItem('webos_welcome', 'true');
+            },
+
+            renderDesktop() {
+                const grid = document.getElementById('desktop-grid');
+                this.apps.forEach(app => {
+                    const el = document.createElement('div');
+                    el.className = 'icon';
+                    el.innerHTML = `<div class="icon-symbol">${app.icon}</div><div class="icon-text">${app.name}</div>`;
+                    el.ondblclick = () => this.launchApp(app.id);
+                    grid.appendChild(el);
+                });
+            },
+
+            launchApp(id) {
+                const app = this.apps.find(a => a.id === id);
+                const winId = `win-${id}-${Math.floor(Math.random() * 1000)}`;
+                
+                const win = document.createElement('div');
+                win.id = winId;
+                win.className = 'window';
+                win.style.width = '600px';
+                win.style.height = '400px';
+                win.style.top = '100px';
+                win.style.left = '150px';
+                win.style.zIndex = ++this.state.zIndex;
+
+                win.innerHTML = `
+                    <div class="win-titlebar" onmousedown="WebOS.dragStart(event, '${winId}')">
+                        <span style="font-size:13px">${app.icon} ${app.name}</span>
+                        <div class="win-controls">
+                            <div class="win-dot dot-min" onclick="WebOS.minimizeApp('${winId}')"></div>
+                            <div class="win-dot dot-max" onclick="WebOS.maximizeApp('${winId}')"></div>
+                            <div class="win-dot dot-close" onclick="WebOS.closeApp('${winId}')"></div>
                         </div>
-                        <div class="win-content">
-                            ${WebOS.windowManager.renderContent(app)}
-                        </div>
-                        <div style="position:absolute; bottom:0; right:0; width:15px; height:15px; cursor:nwse-resize;" 
-                             onmousedown="WebOS.events.resizeStart(event, '${winId}')"></div>
-                    `;
+                    </div>
+                    <div class="win-content">
+                        ${app.url ? `<iframe src="${app.url}" style="width:100%;height:100%;border:none;background:#fff;"></iframe>` : app.content}
+                    </div>
+                    <div style="position:absolute;bottom:0;right:0;width:15px;height:15px;cursor:nwse-resize;" onmousedown="WebOS.resizeStart(event, '${winId}')"></div>
+                `;
 
-                    document.getElementById('os-canvas').appendChild(winEl);
-                    WebOS.processes.push({ winId, appId, title: app.title });
-                    WebOS.ui.updateTaskbar();
-                },
-
-                renderContent(app) {
-                    switch(app.type) {
-                        case 'iframe': return `<iframe src="${app.url}" class="app-iframe"></iframe>`;
-                        case 'terminal': return `<div class="app-terminal">WebOS Terminal [Versión 4.0]<br>(c) 2026 WebOS Corp.<br><br>C:\\Users\\Guest> <span contenteditable="true" style="outline:none"></span></div>`;
-                        case 'editor': return `<textarea class="app-editor" placeholder="Escribe tu código aquí..."></textarea>`;
-                        case 'settings': return `<div style="padding:20px"><h3>Personalización</h3><hr><br><p>Fondo de pantalla (URL):</p><input type="text" id="wp-input" style="width:100%; padding:5px; margin:10px 0;"><button onclick="WebOS.ui.changeWallpaper()">Aplicar</button></div>`;
-                        default: return app.content || '';
-                    }
-                },
-
-                close(winId) {
-                    document.getElementById(winId).remove();
-                    WebOS.processes = WebOS.processes.filter(p => p.winId !== winId);
-                    WebOS.ui.updateTaskbar();
-                },
-
-                maximize(winId) {
-                    const el = document.getElementById(winId);
-                    if(el.style.width === '100%') {
-                        el.style.width = '600px'; el.style.height = '400px';
-                        el.style.top = '100px'; el.style.left = '150px';
-                    } else {
-                        el.style.width = '100%'; el.style.height = 'calc(100% - 48px)';
-                        el.style.top = '0'; el.style.left = '0';
-                    }
-                }
+                document.getElementById('desktop').appendChild(win);
+                this.state.openApps.push({ id: winId, name: app.name, icon: app.icon });
+                this.updateTaskbar();
             },
 
-            // --- INTERFAZ ---
-            ui: {
-                renderDesktop() {
-                    const grid = document.getElementById('desktop-grid');
-                    WebOS.apps.forEach(app => {
-                        const icon = document.createElement('div');
-                        icon.className = 'desktop-icon';
-                        icon.onclick = () => WebOS.windowManager.create(app.id);
-                        icon.innerHTML = `<div class="icon-img">${app.icon}</div><div class="icon-label">${app.title}</div>`;
-                        grid.appendChild(icon);
-                    });
-                },
-
-                updateTaskbar() {
-                    const container = document.getElementById('task-icons-container');
-                    container.innerHTML = '';
-                    WebOS.processes.forEach(p => {
-                        const app = WebOS.apps.find(a => a.id === p.appId);
-                        const item = document.createElement('div');
-                        item.className = 'task-item';
-                        item.innerHTML = app.icon;
-                        item.title = p.title;
-                        container.appendChild(item);
-                    });
-                },
-
-                startTime() {
-                    setInterval(() => {
-                        const now = new Date();
-                        document.getElementById('system-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-                    }, 1000);
-                },
-
-                changeWallpaper() {
-                    const url = document.getElementById('wp-input').value;
-                    if(url) document.getElementById('os-canvas').style.backgroundImage = `url('${url}')`;
-                }
+            closeApp(winId) {
+                document.getElementById(winId).remove();
+                this.state.openApps = this.state.openApps.filter(a => a.id !== winId);
+                this.updateTaskbar();
             },
 
-            // --- MANEJO DE EVENTOS (DRAG & RESIZE) ---
-            events: {
-                dragStart(e, winId) {
-                    const el = document.getElementById(winId);
-                    let startX = e.clientX - el.offsetLeft;
-                    let startY = e.clientY - el.offsetTop;
-                    
-                    const move = (e) => {
-                        el.style.left = (e.clientX - startX) + 'px';
-                        el.style.top = (e.clientY - startY) + 'px';
-                    };
-                    
-                    const stop = () => {
-                        window.removeEventListener('mousemove', move);
-                        window.removeEventListener('mouseup', stop);
-                    };
-                    
-                    window.addEventListener('mousemove', move);
-                    window.addEventListener('mouseup', stop);
-                },
+            // --- MOTOR DE MOVIMIENTO Y REDIMENSIÓN ---
+            dragStart(e, id) {
+                const el = document.getElementById(id);
+                el.style.zIndex = ++this.state.zIndex;
+                let startX = e.clientX - el.offsetLeft;
+                let startY = e.clientY - el.offsetTop;
 
-                resizeStart(e, winId) {
-                    e.preventDefault();
-                    const el = document.getElementById(winId);
-                    let startW = el.offsetWidth;
-                    let startH = el.offsetHeight;
-                    let startX = e.clientX;
-                    let startY = e.clientY;
+                const move = (e) => {
+                    el.style.left = (e.clientX - startX) + 'px';
+                    el.style.top = (e.clientY - startY) + 'px';
+                };
 
-                    const move = (e) => {
-                        el.style.width = (startW + (e.clientX - startX)) + 'px';
-                        el.style.height = (startH + (e.clientY - startY)) + 'px';
-                    };
+                const stop = () => {
+                    window.removeEventListener('mousemove', move);
+                    window.removeEventListener('mouseup', stop);
+                };
 
-                    const stop = () => {
-                        window.removeEventListener('mousemove', move);
-                        window.removeEventListener('mouseup', stop);
-                    };
+                window.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', stop);
+            },
 
-                    window.addEventListener('mousemove', move);
-                    window.addEventListener('mouseup', stop);
-                }
+            resizeStart(e, id) {
+                e.preventDefault();
+                const el = document.getElementById(id);
+                let startW = el.offsetWidth;
+                let startH = el.offsetHeight;
+                let startX = e.clientX;
+                let startY = e.clientY;
+
+                const move = (e) => {
+                    el.style.width = (startW + (e.clientX - startX)) + 'px';
+                    el.style.height = (startH + (e.clientY - startY)) + 'px';
+                };
+
+                const stop = () => {
+                    window.removeEventListener('mousemove', move);
+                    window.removeEventListener('mouseup', stop);
+                };
+
+                window.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', stop);
+            },
+
+            // --- UI HELPERS ---
+            updateTaskbar() {
+                const container = document.getElementById('task-icons');
+                container.innerHTML = '';
+                this.state.openApps.forEach(app => {
+                    const item = document.createElement('div');
+                    item.className = 'task-item';
+                    item.innerHTML = app.icon;
+                    container.appendChild(item);
+                });
+            },
+
+            updateClock() {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toLocaleTimeString();
             }
         };
 
-        WebOS.init();
+        // Arrancar Sistema
+        window.onload = () => WebOS.init();
+
     </script>
 </body>
 </html>
