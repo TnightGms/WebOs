@@ -3,287 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebOS v5.01 - Professional</title>
+    <title>WebOS v0.1 - Professional Core</title>
     <style>
         :root {
-            --primary: #00a2ff;
-            --surface: rgba(20, 20, 25, 0.9);
+            --accent: #0078d4;
+            --glass: rgba(25, 25, 30, 0.85);
             --border: rgba(255, 255, 255, 0.15);
             --text: #ffffff;
-            --taskbar: rgba(10, 10, 12, 0.95);
-            --win-bg: #1a1a1a;
+            --font: 'Segoe UI', system-ui, sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
+            font-family: var(--font);
             background: #000;
-            height: 100vh; width: 100vw;
-            overflow: hidden;
             color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            user-select: none;
         }
 
-        #os-screen {
-            width: 100%; height: 100%;
-            background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80') center/cover;
+        #desktop {
+            width: 100%;
+            height: calc(100% - 48px);
+            background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80') center/cover;
             position: relative;
-        }
-
-        /* --- MODAL DE NOVEDADES v5.01 --- */
-        #welcome-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            z-index: 999999; display: flex; align-items: center; justify-content: center;
-        }
-
-        .modal {
-            background: var(--surface);
-            width: 550px; padding: 40px; border-radius: 20px;
-            border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            transform: scale(1); transition: 0.3s;
-        }
-
-        .modal h2 { color: var(--primary); margin-bottom: 20px; }
-        .modal ul { list-style: none; margin-bottom: 25px; }
-        .modal li { margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; }
-        .modal li::before { content: '🚀'; margin-right: 10px; }
-
-        .btn-start {
-            background: var(--primary); color: white; border: none;
-            padding: 12px 30px; border-radius: 8px; cursor: pointer;
-            font-weight: bold; width: 100%; font-size: 16px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 90px);
+            grid-auto-rows: 100px;
+            gap: 15px;
         }
 
         /* --- VENTANAS --- */
         .window {
-            position: absolute; background: var(--surface);
-            backdrop-filter: blur(20px); border: 1px solid var(--border);
-            border-radius: 12px; display: flex; flex-direction: column;
-            min-width: 300px; min-height: 200px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: absolute;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 250px;
+            min-height: 150px;
         }
 
         .titlebar {
-            height: 40px; padding: 0 15px; display: flex; align-items: center;
-            background: rgba(255,255,255,0.05); cursor: grab;
+            height: 35px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: default;
         }
 
-        .controls { display: flex; gap: 8px; margin-left: auto; }
-        .btn-win { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
-        .close { background: #ff5f57; } .max { background: #28c840; } .min { background: #febc2e; }
+        .win-title { flex: 1; font-size: 13px; font-weight: 500; }
+        .win-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .close { background: #ff5f57; }
+        .max { background: #28c840; }
+        .min { background: #febc2e; }
 
-        .content { flex: 1; overflow: hidden; position: relative; background: var(--win-bg); }
+        .content { flex: 1; overflow: auto; background: rgba(0,0,0,0.2); position: relative; }
 
-        /* --- TASKBAR --- */
+        /* --- COMPONENTES UI --- */
         #taskbar {
-            position: absolute; bottom: 0; width: 100%; height: 50px;
-            background: var(--taskbar); backdrop-filter: blur(15px);
-            display: flex; align-items: center; padding: 0 15px; z-index: 1000000;
+            height: 48px;
+            width: 100%;
+            background: rgba(15, 15, 20, 0.95);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
             border-top: 1px solid var(--border);
+            position: fixed; bottom: 0; z-index: 99999;
         }
 
-        #start-btn {
-            font-size: 24px; cursor: pointer; color: var(--primary);
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+        .start-btn {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; cursor: pointer; color: var(--accent);
+            font-size: 20px; transition: 0.2s;
         }
-        #start-btn:hover { transform: scale(1.2); }
 
-        /* --- START MENU --- */
+        .start-btn:hover { background: rgba(255,255,255,0.1); }
+
         #start-menu {
-            position: absolute; bottom: 60px; left: 10px;
-            width: 300px; height: 400px; background: var(--surface);
-            border-radius: 15px; border: 1px solid var(--border);
-            display: none; padding: 20px; z-index: 1000001;
+            position: absolute; bottom: 55px; left: 10px;
+            width: 350px; height: 450px;
+            background: var(--glass); backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: none; padding: 20px; z-index: 100000;
         }
-        #start-menu.active { display: block; animation: slideUp 0.3s ease; }
 
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* --- DESKTOP --- */
-        #icons-grid {
-            padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, 90px);
-            grid-auto-rows: 100px; gap: 15px;
-        }
-        .icon-unit {
+        .desktop-icon {
             display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; padding: 10px; border-radius: 10px; transition: 0.2s;
+            cursor: pointer; padding: 10px; border-radius: 8px;
         }
-        .icon-unit:hover { background: rgba(255,255,255,0.1); }
-        .icon-unit span:first-child { font-size: 40px; margin-bottom: 5px; }
-        .icon-unit span:last-child { font-size: 12px; text-align: center; }
+        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
+        .icon-img { font-size: 32px; margin-bottom: 5px; }
+        .icon-label { font-size: 12px; text-shadow: 1px 1px 2px #000; }
+
+        /* --- MODAL NOVEDADES --- */
+        #welcome-modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000000;
+        }
+
+        .modal-box {
+            background: var(--glass); padding: 30px;
+            border-radius: 15px; border: 1px solid var(--border);
+            width: 450px; text-align: center;
+        }
+
+        .resizer {
+            position: absolute; width: 10px; height: 10px;
+            right: 0; bottom: 0; cursor: nwse-resize;
+        }
 
     </style>
 </head>
 <body>
 
-    <div id="os-screen">
-        <div id="welcome-screen">
-            <div class="modal">
-                <h2>WebOS v5.01 Hotfix</h2>
-                <ul>
-                    <li><strong>Error Solucionado:</strong> El botón de Inicio ahora es funcional.</li>
-                    <li><strong>Error Solucionado:</strong> Las aplicaciones ahora se abren correctamente.</li>
-                    <li><strong>Novedad:</strong> Panel de "Solución de Errores" añadido al menú.</li>
-                    <li><strong>Novedad:</strong> Soporte mejorado para DuckDuckGo.</li>
-                    <li><strong>Novedad:</strong> Sistema de z-index automático corregido.</li>
-                </ul>
-                <button class="btn-start" onclick="closeWelcome()">Entendido y Corregido</button>
-            </div>
-        </div>
+    <div id="desktop"></div>
 
-        <div id="icons-grid"></div>
-
-        <div id="start-menu">
-            <h3 style="margin-bottom: 15px; border-bottom: 1px solid #444;">Menú Principal</h3>
-            <div id="menu-items"></div>
+    <div id="welcome-modal">
+        <div class="modal-box">
+            <h2 style="color: var(--accent); margin-bottom: 15px;">Bienvenido a WebOS v0.1</h2>
+            <ul style="text-align: left; font-size: 14px; margin-bottom: 20px; list-style: none;">
+                <li>🚀 <b>Multitarea:</b> Abre varias ventanas a la vez.</li>
+                <li>🛠️ <b>Ajustes:</b> Cambia el fondo de pantalla en tiempo real.</li>
+                <li>📝 <b>Apps:</b> Bloc de notas, Navegador y Terminal funcionales.</li>
+                <li>📏 <b>Resizing:</b> Ajusta el tamaño de tus herramientas.</li>
+            </ul>
+            <button onclick="document.getElementById('welcome-modal').remove()" 
+                style="background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer;">
+                Comenzar
+            </button>
         </div>
+    </div>
 
-        <div id="taskbar">
-            <div id="start-btn" onclick="toggleStart()">⊞</div>
-            <div id="running-apps" style="flex: 1; display: flex; margin-left: 20px; gap: 10px;"></div>
-            <div id="clock">00:00:00</div>
-        </div>
+    <div id="start-menu">
+        <h3 style="margin-bottom: 15px;">Aplicaciones</h3>
+        <div id="menu-apps"></div>
+    </div>
+
+    <div id="taskbar">
+        <div class="start-btn" id="start-btn">⊞</div>
+        <div id="running-tasks" style="flex: 1; display: flex; justify-content: center; gap: 10px;"></div>
+        <div id="clock" style="font-size: 12px; width: 80px; text-align: right;">00:00:00</div>
     </div>
 
     <script>
         /**
-         * KERNEL v5.01 - LÓGICA DE REPARACIÓN
+         * WEBOS v0.1 CORE ENGINE
          */
-        const OS = {
-            status: "Running",
-            apps: [
-                { id: 'browser', name: 'Navegador', icon: '🌐', url: 'https://duckduckgo.com' },
-                { id: 'debug', name: 'Solución Errores', icon: '🛠️', content: '<div style="padding:20px"><h3>WebOS Debugger</h3><p>Estado: Sistema Operativo OK</p><p>Versión: 5.01 Stable</p><br><button onclick="location.reload()" style="padding:5px">Reiniciar Kernel</button></div>' },
-                { id: 'notes', name: 'Bloc Notas', icon: '📝', content: '<textarea style="width:100%;height:100%;padding:15px;background:#000;color:#fff;border:none;"></textarea>' },
-                { id: 'terminal', name: 'Consola', icon: '⌨️', content: '<div style="padding:15px;color:#0f0;font-family:monospace">> WebOS v5.01 Boot OK...<br>> Type "help" for info.<br>> _</div>' }
-            ],
-            zIndex: 1000,
+
+        const APPS = [
+            { id: 'browser', name: 'Duck Search', icon: '🌐', url: 'https://duckduckgo.com' },
+            { id: 'notes', name: 'Notas', icon: '📝', type: 'text' },
+            { id: 'term', name: 'Terminal', icon: '💻', type: 'terminal' },
+            { id: 'config', name: 'Ajustes', icon: '⚙️', type: 'settings' }
+        ];
+
+        class WebOS {
+            constructor() {
+                this.zIndex = 100;
+                this.init();
+            }
 
             init() {
-                this.renderIcons();
-                this.updateTime();
-                setInterval(this.updateTime, 1000);
-            },
+                this.renderDesktop();
+                this.setupEvents();
+                this.updateClock();
+                setInterval(() => this.updateClock(), 1000);
+            }
 
-            renderIcons() {
-                const grid = document.getElementById('icons-grid');
-                const menu = document.getElementById('menu-items');
-                
-                this.apps.forEach(app => {
-                    // Iconos Escritorio
-                    const div = document.createElement('div');
-                    div.className = 'icon-unit';
-                    div.innerHTML = `<span>${app.icon}</span><span>${app.name}</span>`;
-                    div.onclick = () => this.openApp(app.id);
-                    grid.appendChild(div);
+            renderDesktop() {
+                const desktop = document.getElementById('desktop');
+                const menuApps = document.getElementById('menu-apps');
 
-                    // Iconos Menú Inicio
-                    const menuDiv = document.createElement('div');
-                    menuDiv.style.cssText = "padding: 10px; cursor: pointer; border-radius: 5px;";
-                    menuDiv.innerHTML = `${app.icon} ${app.name}`;
-                    menuDiv.onclick = () => { this.openApp(app.id); toggleStart(); };
-                    menuDiv.onmouseover = () => menuDiv.style.background = "rgba(255,255,255,0.1)";
-                    menuDiv.onmouseout = () => menuDiv.style.background = "transparent";
-                    menu.appendChild(menuDiv);
+                APPS.forEach(app => {
+                    // Escritorio
+                    const icon = document.createElement('div');
+                    icon.className = 'desktop-icon';
+                    icon.innerHTML = `<div class="icon-img">${app.icon}</div><div class="icon-label">${app.name}</div>`;
+                    icon.ondblclick = () => this.createWindow(app);
+                    desktop.appendChild(icon);
+
+                    // Menú Inicio
+                    const mItem = document.createElement('div');
+                    mItem.style.cssText = "padding:10px; cursor:pointer; border-radius:5px;";
+                    mItem.innerHTML = `${app.icon} ${app.name}`;
+                    mItem.onclick = () => { this.createWindow(app); this.toggleStart(); };
+                    mItem.onmouseover = () => mItem.style.background = "rgba(255,255,255,0.1)";
+                    mItem.onmouseout = () => mItem.style.background = "transparent";
+                    menuApps.appendChild(mItem);
                 });
-            },
+            }
 
-            openApp(id) {
-                const app = this.apps.find(a => a.id === id);
-                const winId = 'win_' + Math.floor(Math.random() * 9999);
-                
+            createWindow(app) {
+                const id = `win-${Date.now()}`;
                 const win = document.createElement('div');
-                win.id = winId;
+                win.id = id;
                 win.className = 'window';
                 win.style.width = '600px'; win.style.height = '400px';
-                win.style.top = '100px'; win.style.left = '100px';
+                win.style.top = '100px'; win.style.left = '150px';
                 win.style.zIndex = ++this.zIndex;
 
                 win.innerHTML = `
-                    <div class="titlebar" onmousedown="OS.dragStart(event, '${winId}')">
-                        <span>${app.icon} ${app.name}</span>
-                        <div class="controls">
-                            <div class="btn-win min" onclick="OS.closeApp('${winId}')"></div>
-                            <div class="btn-win max" onclick="OS.maximizeApp('${winId}')"></div>
-                            <div class="btn-win close" onclick="OS.closeApp('${winId}')"></div>
+                    <div class="titlebar" onmousedown="OS.focusWin('${id}'); OS.dragStart(event, '${id}')">
+                        <span class="win-title">${app.icon} ${app.name}</span>
+                        <div class="win-controls">
+                            <div class="win-btn min" onclick="OS.minimize('${id}')"></div>
+                            <div class="win-btn max" onclick="OS.maximize('${id}')"></div>
+                            <div class="win-btn close" onclick="document.getElementById('${id}').remove()"></div>
                         </div>
                     </div>
-                    <div class="content">
-                        ${app.url ? `<iframe src="${app.url}" style="width:100%;height:100%;border:none;background:#fff;"></iframe>` : app.content}
-                    </div>
-                    <div style="position:absolute;bottom:0;right:0;width:15px;height:15px;cursor:nwse-resize;" onmousedown="OS.resizeStart(event, '${winId}')"></div>
+                    <div class="content">${this.getAppContent(app)}</div>
+                    <div class="resizer" onmousedown="OS.resizeStart(event, '${id}')"></div>
                 `;
 
-                document.getElementById('os-screen').appendChild(win);
-            },
+                document.getElementById('desktop').appendChild(win);
+            }
 
-            closeApp(id) { document.getElementById(id).remove(); },
-
-            maximizeApp(id) {
-                const el = document.getElementById(id);
-                if(el.style.width === '100%') {
-                    el.style.width = '600px'; el.style.height = '400px';
-                } else {
-                    el.style.width = '100%'; el.style.height = 'calc(100% - 50px)';
-                    el.style.top = '0'; el.style.left = '0';
-                }
-            },
+            getAppContent(app) {
+                if (app.url) return `<iframe src="${app.url}" style="width:100%;height:100%;border:none;background:#fff;"></iframe>`;
+                if (app.type === 'text') return `<textarea style="width:100%;height:100%;padding:20px;background:#1a1a1a;color:#fff;border:none;outline:none;resize:none;"></textarea>`;
+                if (app.type === 'terminal') return `<div style="padding:15px;color:#0f0;font-family:monospace">WebOS Console...<br>C:\\Users\\Guest> <span contenteditable="true" style="outline:none"></span></div>`;
+                if (app.type === 'settings') return `<div style="padding:20px"><h3>Fondo de Pantalla</h3><input type="text" placeholder="URL imagen..." onchange="document.getElementById('desktop').style.backgroundImage='url('+this.value+')'" style="width:100%;padding:8px;margin-top:10px;"></div>`;
+                return '';
+            }
 
             dragStart(e, id) {
                 const el = document.getElementById(id);
-                el.style.zIndex = ++this.zIndex;
-                let offsetX = e.clientX - el.offsetLeft;
-                let offsetY = e.clientY - el.offsetTop;
-
-                const move = (e) => {
-                    el.style.left = (e.clientX - offsetX) + 'px';
-                    el.style.top = (e.clientY - offsetY) + 'px';
-                };
-                const up = () => { 
-                    window.removeEventListener('mousemove', move);
-                    window.removeEventListener('mouseup', up);
-                };
+                let x = e.clientX - el.offsetLeft;
+                let y = e.clientY - el.offsetTop;
+                const move = (ev) => { el.style.left = (ev.clientX - x) + 'px'; el.style.top = (ev.clientY - y) + 'px'; };
+                const stop = () => { window.removeEventListener('mousemove', move); };
                 window.addEventListener('mousemove', move);
-                window.addEventListener('mouseup', up);
-            },
+                window.addEventListener('mouseup', stop);
+            }
 
             resizeStart(e, id) {
                 const el = document.getElementById(id);
-                let startW = el.offsetWidth;
-                let startH = el.offsetHeight;
-                let startX = e.clientX;
-                let startY = e.clientY;
-
-                const move = (e) => {
-                    el.style.width = (startW + (e.clientX - startX)) + 'px';
-                    el.style.height = (startH + (e.clientY - startY)) + 'px';
-                };
-                const up = () => { 
-                    window.removeEventListener('mousemove', move);
-                    window.removeEventListener('mouseup', up);
-                };
+                let w = el.offsetWidth, h = el.offsetHeight, x = e.clientX, y = e.clientY;
+                const move = (ev) => { el.style.width = (w + ev.clientX - x) + 'px'; el.style.height = (h + ev.clientY - y) + 'px'; };
+                const stop = () => { window.removeEventListener('mousemove', move); };
                 window.addEventListener('mousemove', move);
-                window.addEventListener('mouseup', up);
-            },
-
-            updateTime() {
-                const now = new Date();
-                document.getElementById('clock').innerText = now.toLocaleTimeString();
+                window.addEventListener('mouseup', stop);
             }
-        };
 
-        // Funciones Globales
-        function toggleStart() {
-            document.getElementById('start-menu').classList.toggle('active');
+            focusWin(id) { document.getElementById(id).style.zIndex = ++this.zIndex; }
+            toggleStart() { const m = document.getElementById('start-menu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+            updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }
+            setupEvents() { document.getElementById('start-btn').onclick = () => this.toggleStart(); }
         }
 
-        function closeWelcome() {
-            document.getElementById('welcome-screen').style.display = 'none';
-        }
-
-        // Auto-Init
-        OS.init();
-
+        const OS = new WebOS();
     </script>
 </body>
 </html>
